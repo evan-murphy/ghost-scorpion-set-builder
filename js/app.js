@@ -6,8 +6,22 @@
   const mainContent = document.getElementById('main-content');
   const mainHeader = document.getElementById('main-header');
 
+  function getBasePath() {
+    if (CONFIG.BASE_PATH) return CONFIG.BASE_PATH;
+    if (window.location.hostname.includes('github.io') && window.location.pathname.startsWith('/ghost-scorpion-set-builder')) {
+      return '/ghost-scorpion-set-builder';
+    }
+    return '';
+  }
+
+  if (!CONFIG.BASE_PATH && window.location.hostname.includes('github.io')) {
+    CONFIG.BASE_PATH = '/ghost-scorpion-set-builder';
+  }
+
   function getPath() {
-    return window.location.pathname.replace(/\/$/, '') || '/';
+    const base = getBasePath();
+    const path = window.location.pathname.replace(new RegExp('^' + base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), '').replace(/\/$/, '') || '/';
+    return path;
   }
 
   function parseRoute(path) {
@@ -25,7 +39,8 @@
   }
 
   function navigate(path) {
-    const fullPath = path.startsWith('/') ? path : '/' + path;
+    const base = getBasePath();
+    const fullPath = base + (path.startsWith('/') ? path : '/' + path);
     window.history.pushState({}, '', fullPath);
     render();
   }
