@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sheets API Test</title>
+  <style>
+    body { font-family: system-ui; max-width: 600px; margin: 2rem auto; padding: 0 1rem; }
+    h1 { font-size: 1.25rem; }
+    .result { margin: 1rem 0; padding: 1rem; border-radius: 8px; white-space: pre-wrap; font-size: 0.85rem; }
+    .ok { background: #dcfce7; color: #166534; }
+    .err { background: #fee2e2; color: #991b1b; }
+    button { padding: 0.5rem 1rem; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>Sheets API Test</h1>
+  <p>This page tests the same API calls the app uses. Run it from your deployed site (same origin as the app).</p>
+  <button id="run">Run test</button>
+  <div id="out"></div>
+
+  <script>
+    const CONFIG = {
+      SONGS_SHEET_ID: '1qEl-eCzp5cy_5tWqsS4FgCYEM0BGR8JRC8lv3MzeyZU',
+      SETLISTS_SHEET_ID: '1lrE0Esgo0Lu7-7Bn5j91xhzlcjYEwkSRq_LCzMbwZqE',
+      API_KEY: 'AIzaSyDfOX4JsSmKnT8Eo0-Ico8q6bs6I5wPrMo',
+      SONGS_RANGE: 'Sheet1!A2:G',
+      SETLISTS_RANGE: 'Sheet1!A2:K'
+    };
+
+    document.getElementById('run').onclick = async () => {
+      const out = document.getElementById('out');
+      out.innerHTML = 'Testing...';
+
+      const results = [];
+
+      try {
+        const songsUrl = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SONGS_SHEET_ID}/values/${CONFIG.SONGS_RANGE}?key=${CONFIG.API_KEY}`;
+        const songsRes = await fetch(songsUrl);
+        const songsJson = await songsRes.json();
+        if (songsRes.ok) {
+          const rows = songsJson.values || [];
+          results.push(`SONGS: OK (${rows.length} rows)`);
+        } else {
+          const msg = songsJson.error?.message || songsJson.error?.errors?.[0]?.message || `HTTP ${songsRes.status}`;
+          results.push(`SONGS: FAILED\n${msg}`);
+        }
+      } catch (e) {
+        results.push(`SONGS: ERROR\n${e.message}`);
+      }
+
+      try {
+        const setlistsUrl = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SETLISTS_SHEET_ID}/values/${CONFIG.SETLISTS_RANGE}?key=${CONFIG.API_KEY}`;
+        const setlistsRes = await fetch(setlistsUrl);
+        const setlistsJson = await setlistsRes.json();
+        if (setlistsRes.ok) {
+          const rows = setlistsJson.values || [];
+          results.push(`SETLISTS: OK (${rows.length} rows)`);
+        } else {
+          const msg = setlistsJson.error?.message || setlistsJson.error?.errors?.[0]?.message || `HTTP ${setlistsRes.status}`;
+          results.push(`SETLISTS: FAILED\n${msg}`);
+        }
+      } catch (e) {
+        results.push(`SETLISTS: ERROR\n${e.message}`);
+      }
+
+      const allOk = results.every(r => r.startsWith('SONGS: OK') || r.startsWith('SETLISTS: OK'));
+      out.innerHTML = `<div class="result ${allOk ? 'ok' : 'err'}">${results.join('\n\n')}</div>`;
+      if (allOk) {
+        out.innerHTML += '<p style="color: green;">✓ Sheets API is working. Set USE_MOCK: false in config.js and push.</p>';
+      } else {
+        out.innerHTML += '<p style="color: #991b1b;">Fix the errors above, then re-run this test.</p>';
+      }
+    };
+  </script>
+</body>
+</html>
