@@ -76,15 +76,22 @@ const DATA = (function() {
     return CONFIG.BASE_PATH || '';
   }
 
+  function useMock() {
+    return CONFIG.USE_MOCK || (typeof window !== 'undefined' && window.location.search.includes('mock=1'));
+  }
+
   async function fetchSongs() {
     let songs;
-    if (CONFIG.USE_MOCK) {
+    if (useMock()) {
       songs = [...MOCK_SONGS];
     } else {
       const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SONGS_SHEET_ID}/values/${CONFIG.SONGS_RANGE}?key=${CONFIG.API_KEY}`;
       const res = await fetch(url);
-      if (!res.ok) throw new Error('Failed to fetch songs');
-      const json = await res.json();
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const msg = json.error?.message || json.error?.errors?.[0]?.message || `HTTP ${res.status}`;
+        throw new Error(`Songs: ${msg}`);
+      }
       const rows = json.values || [];
       songs = rows.map((row) => ({
         id: parseInt(row[0], 10),
@@ -104,13 +111,16 @@ const DATA = (function() {
   }
 
   async function fetchSetlists() {
-    if (CONFIG.USE_MOCK) {
+    if (useMock()) {
       return Promise.resolve(MOCK_SETLISTS);
     }
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SETLISTS_SHEET_ID}/values/${CONFIG.SETLISTS_RANGE}?key=${CONFIG.API_KEY}`;
     const res = await fetch(url);
-    if (!res.ok) throw new Error('Failed to fetch setlists');
-    const json = await res.json();
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const msg = json.error?.message || json.error?.errors?.[0]?.message || `HTTP ${res.status}`;
+      throw new Error(`Setlists: ${msg}`);
+    }
     const rows = json.values || [];
     return rows.map(row => ({
       id: row[0],

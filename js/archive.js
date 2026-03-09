@@ -6,10 +6,20 @@ const ARCHIVE = (function() {
   async function render(container, { navigate }) {
     container.innerHTML = '<p>Loading...</p>';
 
-    const [songs, setlists] = await Promise.all([
-      DATA.fetchSongs(),
-      DATA.fetchSetlists()
-    ]);
+    let songs, setlists;
+    try {
+      [songs, setlists] = await Promise.all([
+        DATA.fetchSongs(),
+        DATA.fetchSetlists()
+      ]);
+    } catch (err) {
+      container.innerHTML = `
+        <p style="color: var(--accent-red); margin-bottom: 0.5rem;">Failed to load: ${String(err.message).replace(/</g, '&lt;')}</p>
+        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem;">Check: spreadsheets shared "Anyone with the link can view", API key has Sheets API enabled, HTTP referrers include your domain.</p>
+        <a href="?mock=1" style="color: var(--accent-red); text-decoration: underline;">Use mock data for now</a>
+      `;
+      return;
+    }
 
     const songMap = Object.fromEntries(songs.map(s => [s.id, s]));
 
