@@ -216,10 +216,18 @@ const BUILDER = (function() {
         doSave(state, container, context, navigate, closeSheets);
         return;
       }
-      content.innerHTML = '<p class="clear-save-prompt">Sign in with Google to save</p><div id="google-signin-btn"></div>';
+      content.innerHTML = `
+        <p class="clear-save-prompt">Sign in with Google to save</p>
+        <div id="google-signin-btn"></div>
+        <button type="button" class="btn-google-fallback" id="google-fallback-btn">Sign in with Google</button>
+      `;
+      const fallbackBtn = content.querySelector('#google-fallback-btn');
       if (typeof AUTH !== 'undefined' && AUTH.renderButton) {
         AUTH.renderButton(content.querySelector('#google-signin-btn'));
       }
+      fallbackBtn.addEventListener('click', () => {
+        if (typeof AUTH !== 'undefined' && AUTH.prompt) AUTH.prompt();
+      });
       saveSheet?.classList.add('open');
       overlay?.classList.add('open');
       document.body.style.overflow = 'hidden';

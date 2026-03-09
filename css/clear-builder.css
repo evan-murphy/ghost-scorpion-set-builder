@@ -115,6 +115,25 @@
   color: var(--clear-text);
 }
 
+.btn-google-fallback {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem;
+  background: #fff;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  font-family: system-ui, sans-serif;
+  color: #3c4043;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-google-fallback:hover {
+  background: #f8f9fa;
+}
+
 /* Main list surface */
 .clear-list-surface {
   padding: 0.5rem 0;

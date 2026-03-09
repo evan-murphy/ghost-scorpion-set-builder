@@ -75,6 +75,13 @@ const AUTH = (function() {
     });
   }
 
+  function prompt() {
+    if (!CONFIG.GOOGLE_CLIENT_ID) return;
+    init().then(ok => {
+      if (ok && window.google?.accounts?.id) google.accounts.id.prompt();
+    });
+  }
+
   function signOut() {
     credential = null;
     notify();
@@ -84,6 +91,7 @@ const AUTH = (function() {
     init,
     signIn: null,
     renderButton,
+    prompt,
     signOut,
     isSignedIn,
     getToken,

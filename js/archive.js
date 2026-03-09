@@ -13,10 +13,11 @@ const ARCHIVE = (function() {
         DATA.fetchSetlists()
       ]);
     } catch (err) {
+      const mockUrl = window.location.pathname + '?mock=1';
       container.innerHTML = `
         <p style="color: var(--accent-red); margin-bottom: 0.5rem;">Failed to load: ${String(err.message).replace(/</g, '&lt;')}</p>
         <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem;">Check: spreadsheets shared "Anyone with the link can view", API key has Sheets API enabled, HTTP referrers include your domain.</p>
-        <a href="?mock=1" style="color: var(--accent-red); text-decoration: underline;">Use mock data for now</a>
+        <a href="${mockUrl}" style="display:inline-block;padding:0.5rem 1rem;background:var(--accent-red);color:white;text-decoration:none;border-radius:6px;font-size:0.9rem;">Use sample data (works offline)</a>
       `;
       return;
     }
