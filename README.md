@@ -1,51 +1,72 @@
-# BTDOAGS Set List Tool
+# BTDOAGS Set List
 
-Set list builder and archive for **Beware The Dangers Of A Ghost Scorpion!**
+A set list builder and archive for **Beware The Dangers Of A Ghost Scorpion!** — built to replace the band’s old workflow of rebuilding lists from memory and printing ad-hoc.
 
-## Quick Start
+**Live:** [set.horror.surf](https://set.horror.surf)
 
-For path-based routing (required for refresh on /new, /sl1, etc.):
+---
+
+## What it does
+
+- **Archive** — Browse all set lists, newest first
+- **Builder** — Compose set lists by picking songs, reordering, and adding breaks; live preview as you edit
+- **Read view** — Mobile-optimized dark mode for on-stage use
+- **PDF** — Download print-ready PDFs that match the band’s existing format
+- **Catalog** — Browse the song catalog and edit display titles (stage shorthand)
+- **Random mode** — On a blank set list, tap the bat button to fill with 13 random songs
+
+---
+
+## Under the hood
+
+### Stack
+
+- **Vanilla JS** — No framework. Client-side routing, modular scripts, and a single HTML shell.
+- **Google Sheets** — Backend. Songs and set lists live in two spreadsheets; reads use the Sheets API, writes go through an Apps Script web app.
+- **PWA** — Installable on mobile with a wake lock so the screen stays on during shows.
+
+### Design choices
+
+**Fidelity to the real format** — The output matches the band’s existing printed set lists: Bebas Neue, all caps, no numbers, a lone `—` for breaks. Two-column for short/medium sets, single-column for long sets.
+
+**Dynamic font scaling** — Font size is computed so the largest readable text fits on one page. A 13-song set gets bigger type than a 26-song set. The goal: readable from arm’s length in low stage light.
+
+**Display titles** — Songs have a `display_title` field for stage shorthand (e.g. “Desmodontinae” → `DESMO`, “North Texas Cobra Squadron Theme” → `N TX`). Editable per song in the catalog.
+
+**Draft persistence** — Edits are saved to `localStorage` as you work. Navigate away or refresh and your draft is still there.
+
+**Clear-inspired builder** — The builder UI uses bottom sheets and gesture-friendly controls instead of a traditional form layout.
+
+### Project structure
+
+```
+├── js/
+│   ├── app.js          # Routing
+│   ├── data.js         # Sheets API + mock data
+│   ├── builder.js      # Set list composer (Clear-style UI)
+│   ├── archive.js      # Set list list
+│   ├── read-view.js    # Stage view (dark, fullscreen)
+│   ├── catalog.js      # Song catalog
+│   ├── pdf.js          # PDF generation (jsPDF + html2canvas)
+│   ├── auth.js         # Google Sign-In
+│   ├── draft-store.js  # localStorage drafts
+│   └── pwa.js          # Wake lock, install prompt
+├── apps-script/
+│   └── Code.gs         # Server-side: save setlists, catalog edits
+└── css/
+    └── clear-builder.css  # Builder styles
+```
+
+---
+
+## For developers
+
+**Run locally** (for path-based routing on `/new`, `/sl1`, etc.):
 
 ```bash
 npx serve -s -l 8080
 ```
 
-Or with Python (home page works; avoid refreshing on sub-routes):
+Then open http://localhost:8080
 
-```bash
-python3 -m http.server 8080
-```
-
-Open http://localhost:8080
-
-## Features
-
-- **Archive** — View all set lists, newest first
-- **Builder** — Compose set lists (draft + preview); Save to sheet (auth required)
-- **Read View** — Mobile-optimized dark mode for stage use
-- **PDF** — Download print-ready PDF
-- **Catalog** — Browse song catalog; edit display titles (auth required to save to sheet)
-
-## Switching to Real Data
-
-1. Use two Google Sheets: one for songs, one for setlists (or create them)
-2. Get a Google API key with Sheets API enabled
-3. Edit `js/config.js`:
-   - `USE_MOCK: false`
-   - `SONGS_SHEET_ID: 'your-songs-spreadsheet-id'`
-   - `SETLISTS_SHEET_ID: 'your-setlists-spreadsheet-id'`
-   - `API_KEY: 'your-api-key'`
-   - If your sheet tabs aren’t named `Sheet1`, set `SONGS_RANGE` and `SETLISTS_RANGE` accordingly (e.g. `songs!A2:G`)
-
-## Enabling Save (Auth + Apps Script)
-
-1. **OAuth Client ID** — In Google Cloud Console, create OAuth 2.0 credentials (Web application). Add authorized JavaScript origins (`http://localhost:8080`, `https://set.horror.surf`). Add `GOOGLE_CLIENT_ID` to `config.js`.
-2. **Apps Script** — Copy `apps-script/Code.gs` to a new project at script.google.com. Add band emails to `ALLOWLIST`. Deploy as Web app (Anyone). Add the Web app URL to `config.js` as `APPS_SCRIPT_URL`.
-
-See `apps-script/README.md` for full setup.
-
-## Deploy to GitHub Pages
-
-1. Push to GitHub
-2. Settings → Pages → Source: main branch
-3. Add custom domain: `set.horror.surf` (CNAME file included)
+**Configure your own instance** — Edit `js/config.js` for sheet IDs, API key, and OAuth. See `apps-script/README.md` for the Apps Script setup.
