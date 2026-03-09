@@ -91,6 +91,10 @@ const BUILDER = (function() {
         <main class="clear-list-surface">
           <ul class="clear-list" id="setlist-items">${listHtml}</ul>
           <div class="clear-bottom-zone">
+            <button type="button" class="clear-random-row" id="random-songs-trigger" title="Fill with 13 random songs" ${state.song_ids.length === 0 ? '' : 'style="display:none" aria-hidden="true"'}>
+              <span class="clear-random-icon">🦇</span>
+              <span>Random</span>
+            </button>
             <button type="button" class="clear-add-row" id="add-song-trigger">
               <span class="clear-add-icon">+</span>
               <span>Add song</span>
@@ -246,6 +250,12 @@ const BUILDER = (function() {
     const refresh = () => {
       list.innerHTML = buildListHTML(state);
       updateSongPickerList(container.querySelector('#song-picker-list'), state, activeSongs);
+      const randomBtn = container.querySelector('#random-songs-trigger');
+      if (randomBtn) {
+        const isEmpty = state.song_ids.length === 0;
+        randomBtn.style.display = isEmpty ? '' : 'none';
+        randomBtn.setAttribute('aria-hidden', isEmpty ? 'false' : 'true');
+      }
       initSortable(container, state, refresh, context);
       scheduleDraftSave(state, context);
     };
@@ -260,6 +270,15 @@ const BUILDER = (function() {
       overlay?.classList.remove('open');
       document.body.style.overflow = '';
     };
+
+    container.querySelector('#random-songs-trigger')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      haptic();
+      if (state.song_ids.length > 0) return;
+      const shuffled = [...activeSongs].sort(() => Math.random() - 0.5);
+      state.song_ids = shuffled.slice(0, 13).map(s => s.id);
+      refresh();
+    });
 
     addTrigger?.addEventListener('click', (e) => {
       e.stopPropagation();

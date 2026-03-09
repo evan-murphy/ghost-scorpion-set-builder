@@ -207,6 +207,40 @@
 .clear-bottom-zone {
   position: relative;
   margin: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.clear-random-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: var(--clear-touch);
+  padding: 1rem;
+  border: 2px dashed rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.02);
+  color: var(--clear-muted);
+  font-size: 1rem;
+  font-family: system-ui, sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.clear-random-row:hover,
+.clear-random-row:active {
+  border-color: var(--clear-accent);
+  color: var(--clear-accent);
+  background: rgba(186, 33, 37, 0.04);
+}
+
+.clear-random-icon {
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
 .clear-add-row {
