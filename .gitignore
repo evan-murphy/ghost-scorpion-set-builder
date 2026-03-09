@@ -1,0 +1,13 @@
+# Credentials — do not commit
+client_secret*.json
+*.pem
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+.vscode/
+*.swp
+*.swo

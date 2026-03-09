@@ -1,0 +1,416 @@
+/* Clear-inspired Builder — single surface, gesture-driven */
+
+.clear-builder {
+  --clear-accent: #BA2125;
+  --clear-bg: #F8F6F2;
+  --clear-surface: #FFFFFF;
+  --clear-text: #1A1A1A;
+  --clear-muted: #888;
+  --clear-touch: 56px;
+  min-height: calc(100dvh - 60px);
+  background: var(--clear-bg);
+  padding: 0;
+  margin: -1.5rem -1.5rem 0;
+}
+
+/* Minimal header — tap to expand metadata */
+.clear-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  padding-top: calc(1rem + env(safe-area-inset-top));
+  background: var(--clear-surface);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.clear-back {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 1.5rem;
+  color: var(--clear-text);
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.clear-back:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.clear-back:active {
+  transform: scale(0.95);
+}
+
+.clear-meta-trigger {
+  flex: 1;
+  text-align: left;
+  padding: 0.5rem 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.25rem;
+  letter-spacing: 0.02em;
+  color: var(--clear-text);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.clear-meta-trigger:hover {
+  color: var(--clear-accent);
+}
+
+.clear-meta-date {
+  display: block;
+}
+
+.clear-meta-venue {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--clear-muted);
+  font-family: system-ui, sans-serif;
+}
+
+.clear-draft-badge {
+  font-size: 0.5rem;
+  color: #22c55e;
+  opacity: 0.9;
+}
+
+.clear-save-btn {
+  padding: 0.5rem 1rem;
+  background: var(--clear-accent);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-family: system-ui, sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.clear-save-btn:hover {
+  opacity: 0.9;
+}
+
+.clear-save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.clear-save-sheet-content {
+  padding: 2rem 1.5rem;
+}
+
+.clear-save-prompt {
+  margin: 0 0 1.5rem;
+  font-size: 1.1rem;
+  color: var(--clear-text);
+}
+
+/* Main list surface */
+.clear-list-surface {
+  padding: 0.5rem 0;
+  padding-bottom: calc(2rem + env(safe-area-inset-bottom));
+}
+
+.clear-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 1rem;
+}
+
+.clear-item {
+  display: flex;
+  align-items: center;
+  min-height: var(--clear-touch);
+  padding: 0 1rem;
+  margin-bottom: 2px;
+  background: var(--clear-surface);
+  border-radius: 12px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.25rem;
+  letter-spacing: 0.02em;
+  color: var(--clear-text);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.clear-item:active {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.clear-item-ghost {
+  opacity: 0.6;
+  background: rgba(186, 33, 37, 0.08);
+}
+
+.clear-item-text {
+  flex: 1;
+  cursor: grab;
+  padding: 0.75rem 0;
+}
+
+.clear-item-text:active {
+  cursor: grabbing;
+}
+
+.clear-divider .clear-item-text {
+  color: var(--clear-accent);
+  font-size: 1rem;
+}
+
+.clear-swipe-action {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 80px;
+  background: var(--clear-accent);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-family: system-ui, sans-serif;
+}
+
+/* Bottom zone: add row + trash (same spot, contextual) */
+.clear-bottom-zone {
+  position: relative;
+  margin: 1rem;
+}
+
+.clear-add-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: var(--clear-touch);
+  padding: 1rem;
+  border: 2px dashed rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--clear-muted);
+  font-size: 1rem;
+  font-family: system-ui, sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.clear-add-row:hover,
+.clear-add-row:active {
+  border-color: var(--clear-accent);
+  color: var(--clear-accent);
+  background: rgba(186, 33, 37, 0.04);
+}
+
+.clear-add-row[aria-hidden="true"],
+.clear-bottom-zone:has(.clear-trash-zone.active) .clear-add-row {
+  display: none !important;
+}
+
+.clear-add-icon {
+  font-size: 1.5rem;
+  font-weight: 300;
+  line-height: 1;
+}
+
+/* Trash zone — shown when dragging, yellow when item is over it */
+.clear-trash-zone {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: var(--clear-touch);
+  padding: 1rem;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.04);
+  border: 2px dashed rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+}
+
+.clear-trash-zone.active {
+  display: flex !important;
+}
+
+.clear-trash-zone.drag-over {
+  background: rgba(243, 199, 12, 0.25);
+  border-color: var(--accent-yellow, #F3C70C);
+}
+
+.clear-trash-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  min-height: 48px;
+  width: 100%;
+}
+
+.clear-trash-list .clear-item {
+  margin-bottom: 0;
+}
+
+.clear-trash-label {
+  font-size: 0.9rem;
+  color: var(--clear-muted);
+  transition: color 0.2s;
+}
+
+.clear-trash-zone.drag-over .clear-trash-label {
+  color: #b8860b;
+}
+
+.clear-trash-zone::before {
+  content: "☠";
+  font-size: 1.75rem;
+  line-height: 1;
+  opacity: 0.6;
+}
+
+.clear-trash-zone.drag-over::before {
+  opacity: 1;
+}
+
+/* Bottom sheets */
+.clear-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 100;
+}
+
+.clear-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.clear-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 70vh;
+  background: var(--clear-surface);
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.15);
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  z-index: 101;
+  padding: 0.5rem 1.5rem 2rem;
+  padding-bottom: calc(2rem + env(safe-area-inset-bottom));
+  overflow-y: auto;
+}
+
+.clear-sheet.open {
+  transform: translateY(0);
+}
+
+.clear-sheet-handle {
+  width: 36px;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 2px;
+  margin: 0.5rem auto 1rem;
+}
+
+.clear-sheet-search {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.clear-sheet-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.clear-sheet-item {
+  padding: 1rem 0;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.02em;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s;
+}
+
+.clear-sheet-item:hover,
+.clear-sheet-item:active {
+  background: rgba(186, 33, 37, 0.06);
+  color: var(--clear-accent);
+}
+
+.clear-sheet-item:last-child {
+  border-bottom: none;
+}
+
+/* Meta form in sheet */
+.clear-meta-form {
+  padding: 0.5rem 0;
+}
+
+.clear-meta-field {
+  margin-bottom: 1.25rem;
+}
+
+.clear-meta-field label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--clear-muted);
+  margin-bottom: 0.35rem;
+}
+
+.clear-meta-field input,
+.clear-meta-field select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.clear-meta-field.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.clear-meta-field.checkbox-row input {
+  width: auto;
+}
+
+.clear-discard-draft {
+  padding: 0.5rem 0;
+  border: none;
+  background: none;
+  color: var(--clear-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.clear-discard-draft:hover {
+  color: var(--clear-accent);
+}

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>BTDOAGS Set List</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/clear-builder.css">
+</head>
+<body>
+  <div id="app">
+    <header id="main-header" class="builder-header">
+      <img src="assets/scorpion-black.png" alt="" class="logo" height="48">
+      <h1>BTDOAGS Set List</h1>
+      <nav>
+        <a href="/" data-route="/">Archive</a>
+        <a href="/new" data-route="/new">New Set List</a>
+        <a href="/catalog" data-route="/catalog">Catalog</a>
+      </nav>
+    </header>
+    <main id="main-content"></main>
+  </div>
+
+  <div id="print-target" aria-hidden="true"></div>
+
+  <script src="https://accounts.google.com/gsi/client" async defer onload="typeof AUTH !== 'undefined' && AUTH.init()"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/draft-store.js"></script>
+  <script src="js/pending-song.js"></script>
+  <script src="js/display-title-overrides.js"></script>
+  <script src="js/data.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="js/pdf.js"></script>
+  <script src="js/pwa.js"></script>
+  <script src="js/archive.js"></script>
+  <script src="js/builder.js"></script>
+  <script src="js/read-view.js"></script>
+  <script src="js/catalog.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

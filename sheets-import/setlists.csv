@@ -1,0 +1,4 @@
+id,date,venue,mode,song_ids,divider_positions,show_date,show_venue,logo_variant,notes,created_at
+sl1,2025-05-17,"Cantab Lounge Cambridge, MA",short,1|2|34|4|5|36|38|52|41|43,4,TRUE,FALSE,black,,2025-05-17T20:00:00Z
+sl2,2025-08-15,VC Tour,medium,21|22|44|47|55|31|32|59,"3,6",TRUE,TRUE,black,,2025-08-01T12:00:00Z
+sl3,2024-09-12,Asheville,long,8|7|44|47|55|31|32|59|50|57,"2,5,8",TRUE,TRUE,white,Mini tour,2024-09-01T10:00:00Z
