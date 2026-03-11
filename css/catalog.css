@@ -616,6 +616,8 @@ body.catalog-view #main-content {
   border: 1px solid var(--divider);
   border-radius: 6px;
   font-size: 0.9rem;
+  background: var(--card-bg);
+  color: var(--text);
 }
 
 .catalog-column-list {
@@ -653,6 +655,7 @@ body.catalog-view #main-content {
   border-radius: 6px;
   font-size: 0.85rem;
   background: var(--card-bg);
+  color: var(--text);
 }
 
 /* Add song form (compact) */
