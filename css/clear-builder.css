@@ -101,9 +101,9 @@
 
 .clear-clear-btn {
   padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--clear-muted);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--clear-accent);
+  color: white;
+  border: none;
   border-radius: 8px;
   font-size: 1.1rem;
   font-family: system-ui, sans-serif;
@@ -113,9 +113,7 @@
 }
 
 .clear-clear-btn:hover {
-  color: var(--clear-text);
-  border-color: rgba(255, 255, 255, 0.3);
-  background: rgba(255, 255, 255, 0.12);
+  opacity: 0.9;
 }
 
 .clear-clear-btn:disabled {
@@ -126,8 +124,8 @@
 
 .clear-save-btn {
   padding: 0.5rem 1rem;
-  background: var(--clear-accent);
-  color: white;
+  background: #F3C70C;
+  color: #1A1A1A;
   border: none;
   border-radius: 8px;
   font-size: 1.1rem;
@@ -184,17 +182,18 @@
 .clear-list {
   list-style: none;
   margin: 0;
-  padding: 0 1rem;
+  padding: 0 0.75rem;
 }
 
 .clear-item {
   display: flex;
   align-items: center;
-  min-height: var(--clear-touch);
-  padding: 0 1rem;
-  margin-bottom: 2px;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 0.75rem;
+  margin-bottom: 1px;
   background: var(--clear-surface);
-  border-radius: 12px;
+  border-radius: 10px;
   font-family: 'Bebas Neue', sans-serif;
   font-size: 1.25rem;
   letter-spacing: 0.02em;
@@ -217,7 +216,8 @@
 .clear-item-text {
   flex: 1;
   cursor: grab;
-  padding: 0.75rem 0;
+  padding: 0.5rem 0;
+  text-align: center;
 }
 
 .clear-item-text:active {
