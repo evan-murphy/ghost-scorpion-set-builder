@@ -358,8 +358,19 @@ const CATALOG = (function() {
   async function render(container, { navigate }) {
     state.prefs = CATALOG_PREFS;
 
-    container.innerHTML = '<p>Loading...</p>';
-    const songs = await DATA.fetchSongs();
+    container.innerHTML = '<p style="padding: 1.5rem; color: var(--text);">Loading...</p>';
+    let songs;
+    try {
+      songs = await DATA.fetchSongs();
+    } catch (e) {
+      console.warn('Catalog: fetch failed, using mock data', e);
+      if (typeof DATA !== 'undefined' && DATA.MOCK_SONGS) {
+        songs = [...DATA.MOCK_SONGS];
+      } else {
+        container.innerHTML = `<p style="padding: 1.5rem; color: var(--text);">Could not load catalog. <a href="?mock=1">Try with mock data</a>.</p>`;
+        return;
+      }
+    }
     state.tracks = songs.map(s => DATA.normalizeTrack(s));
 
     const signedIn = typeof AUTH !== 'undefined' && AUTH.isSignedIn();

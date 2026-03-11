@@ -1,29 +1,16 @@
-/* BTDOAGS Set List — Design System */
+/* BTDOAGS Set List — Design System (dark mode) */
 
 :root {
-  /* Light mode (builder) */
-  --bg: #F5F5F0;
-  --text: #1A1A1A;
-  --text-secondary: #555555;
-  --accent-red: #BA2125;
-  --accent-orange: #F77515;
-  --accent-yellow: #F3C70C;
-  --divider: #DDDDDD;
-  --card-bg: #FFFFFF;
-  --font-display: 'Bebas Neue', sans-serif;
-  --font-ui: system-ui, sans-serif;
-}
-
-/* Dark mode (read view, catalog) */
-.stage-root,
-body.stage-view,
-body.catalog-view {
   --bg: #121212;
   --text: #F0F0F0;
   --text-secondary: #999999;
   --accent-red: #C93030;
+  --accent-orange: #F77515;
+  --accent-yellow: #F3C70C;
   --divider: rgba(255, 255, 255, 0.06);
   --card-bg: #1E1E1E;
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-ui: system-ui, sans-serif;
 }
 
 * {
@@ -129,7 +116,7 @@ body.builder-view #main-content {
 }
 
 .archive-table tr:hover td {
-  background: rgba(0, 0, 0, 0.02);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .archive-actions {
@@ -259,7 +246,7 @@ body.builder-view #main-content {
 }
 
 .song-picker-list li:hover {
-  background: rgba(0, 0, 0, 0.04);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .song-picker-list li.disabled {
@@ -445,7 +432,7 @@ body.builder-view #main-content {
   padding: 0.25rem 0.5rem;
   font-size: 0.75rem;
   background: var(--accent-yellow);
-  color: #1A1A1A;
+  color: #121212;
   border-radius: 4px;
 }
 
@@ -656,7 +643,7 @@ body.builder-view #main-content {
 }
 
 .btn-clear-staged:hover {
-  background: rgba(0, 0, 0, 0.04);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .catalog-table {
