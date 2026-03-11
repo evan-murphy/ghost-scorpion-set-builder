@@ -5,10 +5,10 @@
 
 const DATA = (function() {
   const MOCK_SONGS = [
-    { id: 1, title: "Vile Chat", display_title: "VILE CHAT", album: "Vile Chat EP", year: 2025, notes: "", active: true },
-    { id: 2, title: "The King's Sip", display_title: "KINGS SIP", album: "Vile Chat EP", year: 2025, notes: "", active: true },
-    { id: 3, title: "The Headless Dead pts I & II", display_title: "HEADLESS / SEVERED", album: "Vile Chat EP", year: 2025, notes: "", active: true },
-    { id: 4, title: "Rock Hudson", display_title: "ROCK HUDSON", album: "Acid Chalet", year: 2023, notes: "", active: true },
+    { id: 1, title: "Vile Chat", display_title: "VILE CHAT", album: "Vile Chat EP", year: 2025, notes: "", active: true, primary_artist: "BTDOAGS", isrc: "USXXX2400001" },
+    { id: 2, title: "The King's Sip", display_title: "KINGS SIP", album: "Vile Chat EP", year: 2025, notes: "", active: true, primary_artist: "BTDOAGS" },
+    { id: 3, title: "The Headless Dead pts I & II", display_title: "HEADLESS / SEVERED", album: "Vile Chat EP", year: 2025, notes: "", active: true, primary_artist: "BTDOAGS", isrc: "USXXX2400003" },
+    { id: 4, title: "Rock Hudson", display_title: "ROCK HUDSON", album: "Acid Chalet", year: 2023, notes: "", active: true, primary_artist: "BTDOAGS", isrc: "USXXX2300004", explicit: true },
     { id: 5, title: "Desmodontinae", display_title: "DESMO", album: "Acid Chalet", year: 2023, notes: "", active: true },
     { id: 6, title: "Nix Street", display_title: "NIX ST", album: "Acid Chalet", year: 2023, notes: "", active: true },
     { id: 7, title: "The Hydromancer", display_title: "HYDROMANCER", album: "Acid Chalet", year: 2023, notes: "", active: true },
@@ -153,6 +153,42 @@ const DATA = (function() {
     return songs.find(s => s.id === id);
   }
 
+  /** Normalize song to extended catalog track (DDEX-aligned fields) */
+  function normalizeTrack(song) {
+    if (!song) return null;
+    const defaultArtist = useMock() ? 'BTDOAGS' : '';
+    return {
+      id: song.id,
+      title: song.title || '',
+      display_title: song.display_title ?? song.title ?? '',
+      album: song.album || '',
+      year: song.year ?? null,
+      notes: song.notes || '',
+      active: song.active !== false,
+      primary_artist: song.primary_artist ?? defaultArtist,
+      title_version: song.title_version ?? '',
+      track_number: song.track_number ?? null,
+      disc_number: song.disc_number ?? null,
+      genre: song.genre ?? '',
+      release_date: song.release_date ?? (song.year ? `${song.year}-01-01` : ''),
+      language: song.language ?? '',
+      explicit: song.explicit ?? null,
+      artwork: song.artwork ?? null,
+      isrc: song.isrc ?? '',
+      iswc: song.iswc ?? '',
+      upc: song.upc ?? '',
+      catalog_id: song.catalog_id ?? '',
+      writers: song.writers ?? [],
+      composers: song.composers ?? [],
+      producers: song.producers ?? [],
+      publishers: song.publishers ?? [],
+      p_line: song.p_line ?? '',
+      c_line: song.c_line ?? '',
+      territories: song.territories ?? '',
+      release_status: song.release_status ?? 'draft'
+    };
+  }
+
   function getSetlistById(setlists, id) {
     return setlists.find(s => s.id === id);
   }
@@ -239,6 +275,7 @@ const DATA = (function() {
     fetchSetlists,
     getSongById,
     getSetlistById,
+    normalizeTrack,
     saveSetlist,
     saveCatalogDisplayTitle,
     saveNewSong,
