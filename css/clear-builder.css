@@ -1,11 +1,11 @@
-/* Clear-inspired Builder — single surface, gesture-driven */
+/* Clear-inspired Builder — single surface, gesture-driven, dark mode (stage view style) */
 
 .clear-builder {
-  --clear-accent: #BA2125;
-  --clear-bg: #F8F6F2;
-  --clear-surface: #FFFFFF;
-  --clear-text: #1A1A1A;
-  --clear-muted: #888;
+  --clear-accent: #C93030;
+  --clear-bg: #121212;
+  --clear-surface: #1E1E1E;
+  --clear-text: #F0F0F0;
+  --clear-muted: #999999;
   --clear-touch: 56px;
   min-height: calc(100dvh - 60px);
   background: var(--clear-bg);
@@ -17,14 +17,17 @@
 .clear-header {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  justify-content: center;
+  position: relative;
   padding: 1rem 1.25rem;
   padding-top: calc(1rem + env(safe-area-inset-top));
   background: var(--clear-surface);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .clear-back {
+  position: absolute;
+  left: 1rem;
   width: 44px;
   height: 44px;
   padding: 0;
@@ -41,17 +44,29 @@
 }
 
 .clear-back:hover {
-  background: rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .clear-back:active {
   transform: scale(0.95);
 }
 
+.clear-header-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.clear-header-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
 .clear-meta-trigger {
-  flex: 1;
-  text-align: left;
-  padding: 0.5rem 0;
+  padding: 0.25rem 0;
   border: none;
   background: none;
   cursor: pointer;
@@ -59,6 +74,7 @@
   font-size: 1.25rem;
   letter-spacing: 0.02em;
   color: var(--clear-text);
+  text-align: center;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -85,11 +101,11 @@
 
 .clear-clear-btn {
   padding: 0.5rem 1rem;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.08);
   color: var(--clear-muted);
-  border: 1px solid rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
-  font-size: 0.9rem;
+  font-size: 1.1rem;
   font-family: system-ui, sans-serif;
   font-weight: 500;
   cursor: pointer;
@@ -98,7 +114,8 @@
 
 .clear-clear-btn:hover {
   color: var(--clear-text);
-  border-color: rgba(0, 0, 0, 0.25);
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .clear-clear-btn:disabled {
@@ -113,7 +130,7 @@
   color: white;
   border: none;
   border-radius: 8px;
-  font-size: 0.9rem;
+  font-size: 1.1rem;
   font-family: system-ui, sans-serif;
   font-weight: 500;
   cursor: pointer;
@@ -144,18 +161,18 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.6rem 1.25rem;
-  background: #fff;
-  border: 1px solid #dadce0;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 4px;
   font-size: 0.95rem;
   font-family: system-ui, sans-serif;
-  color: #3c4043;
+  color: var(--clear-text);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
 .btn-google-fallback:hover {
-  background: #f8f9fa;
+  background: rgba(255, 255, 255, 0.15);
 }
 
 /* Main list surface */
@@ -189,12 +206,12 @@
 }
 
 .clear-item:active {
-  background: rgba(0, 0, 0, 0.02);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .clear-item-ghost {
   opacity: 0.6;
-  background: rgba(186, 33, 37, 0.08);
+  background: rgba(201, 48, 48, 0.2);
 }
 
 .clear-item-text {
@@ -244,9 +261,9 @@
   width: 100%;
   min-height: var(--clear-touch);
   padding: 1rem;
-  border: 2px dashed rgba(0, 0, 0, 0.2);
+  border: 2px dashed rgba(255, 255, 255, 0.2);
   border-radius: 12px;
-  background: rgba(0, 0, 0, 0.02);
+  background: rgba(255, 255, 255, 0.03);
   color: var(--clear-muted);
   font-size: 1rem;
   font-family: system-ui, sans-serif;
@@ -259,7 +276,7 @@
 .clear-random-row:active {
   border-color: var(--clear-accent);
   color: var(--clear-accent);
-  background: rgba(186, 33, 37, 0.04);
+  background: rgba(201, 48, 48, 0.15);
 }
 
 .clear-random-icon {
@@ -275,7 +292,7 @@
   width: 100%;
   min-height: var(--clear-touch);
   padding: 1rem;
-  border: 2px dashed rgba(0, 0, 0, 0.15);
+  border: 2px dashed rgba(255, 255, 255, 0.2);
   border-radius: 12px;
   background: transparent;
   color: var(--clear-muted);
@@ -290,7 +307,7 @@
 .clear-add-row:active {
   border-color: var(--clear-accent);
   color: var(--clear-accent);
-  background: rgba(186, 33, 37, 0.04);
+  background: rgba(201, 48, 48, 0.15);
 }
 
 .clear-add-row[aria-hidden="true"],
@@ -314,8 +331,8 @@
   min-height: var(--clear-touch);
   padding: 1rem;
   border-radius: 12px;
-  background: rgba(0, 0, 0, 0.04);
-  border: 2px dashed rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 0.04);
+  border: 2px dashed rgba(255, 255, 255, 0.2);
   transition: all 0.2s ease;
 }
 
@@ -385,7 +402,8 @@
   max-height: 70vh;
   background: var(--clear-surface);
   border-radius: 20px 20px 0 0;
-  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.5);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
   transform: translateY(100%);
   transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
   z-index: 101;
@@ -401,7 +419,7 @@
 .clear-sheet-handle {
   width: 36px;
   height: 4px;
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.3);
   border-radius: 2px;
   margin: 0.5rem auto 1rem;
 }
@@ -409,10 +427,16 @@
 .clear-sheet-search {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 10px;
   font-size: 1rem;
   margin-bottom: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--clear-text);
+}
+
+.clear-sheet-search::placeholder {
+  color: var(--clear-muted);
 }
 
 .clear-sheet-list {
@@ -426,7 +450,8 @@
   font-family: 'Bebas Neue', sans-serif;
   font-size: 1.1rem;
   letter-spacing: 0.02em;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--clear-text);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition: background 0.15s;
@@ -434,7 +459,7 @@
 
 .clear-sheet-item:hover,
 .clear-sheet-item:active {
-  background: rgba(186, 33, 37, 0.06);
+  background: rgba(201, 48, 48, 0.2);
   color: var(--clear-accent);
 }
 
@@ -462,10 +487,13 @@
 .clear-meta-field select {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 10px;
   font-size: 1rem;
   font-family: inherit;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--clear-text);
+  accent-color: var(--clear-accent);
 }
 
 .clear-meta-field.checkbox-row {

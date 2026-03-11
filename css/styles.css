@@ -84,6 +84,10 @@ body.builder-view .builder-header {
   display: none;
 }
 
+body.builder-view {
+  background: #121212;
+}
+
 body.builder-view #main-content {
   padding: 0;
   max-width: none;
