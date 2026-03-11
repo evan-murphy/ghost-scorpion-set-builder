@@ -83,6 +83,30 @@
   opacity: 0.9;
 }
 
+.clear-clear-btn {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  color: var(--clear-muted);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-family: system-ui, sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.clear-clear-btn:hover {
+  color: var(--clear-text);
+  border-color: rgba(0, 0, 0, 0.25);
+}
+
+.clear-clear-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .clear-save-btn {
   padding: 0.5rem 1rem;
   background: var(--clear-accent);

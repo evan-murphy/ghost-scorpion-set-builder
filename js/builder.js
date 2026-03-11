@@ -85,7 +85,8 @@ const BUILDER = (function() {
             ${state.venue ? `<span class="clear-meta-venue">${state.venue}</span>` : ''}
           </button>
           <span class="clear-draft-badge" title="Edits saved locally">●</span>
-          <button type="button" class="clear-save-btn" id="save-setlist-btn">Save</button>
+          <button type="button" class="clear-clear-btn" id="clear-setlist-btn" aria-label="Clear all songs" title="Remove all songs from this set list" ${state.song_ids.length === 0 && (state.divider_positions?.length ?? 0) === 0 ? 'disabled' : ''}>🗑️</button>
+          <button type="button" class="clear-save-btn" id="save-setlist-btn" aria-label="Save">💾</button>
         </header>
 
         <main class="clear-list-surface">
@@ -256,6 +257,11 @@ const BUILDER = (function() {
         randomBtn.style.display = isEmpty ? '' : 'none';
         randomBtn.setAttribute('aria-hidden', isEmpty ? 'false' : 'true');
       }
+      const clearBtn = container.querySelector('#clear-setlist-btn');
+      if (clearBtn) {
+        const hasItems = state.song_ids.length > 0 || (state.divider_positions?.length ?? 0) > 0;
+        clearBtn.disabled = !hasItems;
+      }
       initSortable(container, state, refresh, context);
       scheduleDraftSave(state, context);
     };
@@ -300,6 +306,14 @@ const BUILDER = (function() {
     });
 
     overlay?.addEventListener('click', closeSheets);
+
+    container.querySelector('#clear-setlist-btn')?.addEventListener('click', () => {
+      haptic();
+      if (state.song_ids.length === 0 && (state.divider_positions?.length ?? 0) === 0) return;
+      state.song_ids = [];
+      state.divider_positions = [];
+      refresh();
+    });
 
     container.querySelector('#save-setlist-btn')?.addEventListener('click', () => {
       haptic();
