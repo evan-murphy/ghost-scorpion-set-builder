@@ -167,6 +167,7 @@ body.catalog-view #main-content {
   border-radius: 4px;
   font-size: inherit;
   background: transparent;
+  color: var(--text);
 }
 
 .catalog-table .catalog-cell-editable input:focus {
@@ -504,6 +505,8 @@ body.catalog-view #main-content {
   border-radius: 8px;
   font-size: 1rem;
   font-family: inherit;
+  background: var(--card-bg);
+  color: var(--text);
 }
 
 .catalog-form-field input:focus,
@@ -671,6 +674,11 @@ body.catalog-view .catalog-add-form {
 
 body.catalog-view .catalog-add-form .catalog-add-field {
   margin: 0;
+}
+
+body.catalog-view .catalog-add-form input {
+  background: var(--card-bg);
+  color: var(--text);
 }
 
 body.catalog-view .catalog-add-form .btn-stage {

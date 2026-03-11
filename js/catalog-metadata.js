@@ -41,22 +41,22 @@ const CATALOG_METADATA = (function() {
     simple: {
       id: 'simple',
       label: 'Simple',
-      columns: ['display_title', 'title', 'primary_artist', 'album', 'track_number', 'release_date', 'explicit']
+      columns: ['display_title', 'title', 'primary_artist', 'album', 'release_date']
     },
     basic: {
       id: 'basic',
       label: 'Basic',
-      columns: ['display_title', 'title', 'primary_artist', 'album', 'track_number', 'disc_number', 'genre', 'release_date', 'explicit']
+      columns: ['display_title', 'title', 'primary_artist', 'album', 'disc_number', 'genre', 'release_date']
     },
     dsp: {
       id: 'dsp',
       label: 'DSP Ready',
-      columns: ['display_title', 'title', 'primary_artist', 'album', 'track_number', 'isrc', 'explicit', 'release_date', 'release_status']
+      columns: ['display_title', 'title', 'primary_artist', 'album', 'isrc', 'release_date', 'release_status']
     },
     full: {
       id: 'full',
       label: 'Full',
-      columns: ['display_title', 'title', 'primary_artist', 'album', 'track_number', 'disc_number', 'isrc', 'iswc', 'genre', 'release_date', 'explicit', 'release_status']
+      columns: ['display_title', 'title', 'primary_artist', 'album', 'disc_number', 'isrc', 'iswc', 'genre', 'release_date', 'release_status']
     }
   };
 

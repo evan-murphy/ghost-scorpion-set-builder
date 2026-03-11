@@ -420,7 +420,7 @@ const CATALOG = (function() {
     const presetOptions = Object.values(CATALOG_METADATA.COLUMN_PRESETS).map(p =>
       `<option value="${p.id}" ${state.prefs.get('columnPreset') === p.id ? 'selected' : ''}>${escapeHtml(p.label)}</option>`
     ).join('');
-    const columnKeys = ['display_title', 'title', 'primary_artist', 'album', 'track_number', 'disc_number', 'year', 'genre', 'release_date', 'explicit', 'isrc', 'iswc', 'release_status'];
+    const columnKeys = ['display_title', 'title', 'primary_artist', 'album', 'disc_number', 'year', 'genre', 'release_date', 'isrc', 'iswc', 'release_status'];
     const columnCheckboxes = (state.prefs.get('advancedMode') ? CATALOG_METADATA.ALL_FIELDS : CATALOG_METADATA.SIMPLE_FIELDS)
       .filter(f => columnKeys.includes(f.key))
       .map(f => `
