@@ -84,6 +84,7 @@
 
 .clear-meta-date {
   display: block;
+  color: #F3C70C;
 }
 
 .clear-meta-venue {
@@ -101,8 +102,8 @@
 
 .clear-clear-btn {
   padding: 0.5rem 1rem;
-  background: var(--clear-accent);
-  color: white;
+  background: var(--clear-surface);
+  color: var(--clear-text);
   border: none;
   border-radius: 8px;
   font-size: 1.1rem;
@@ -110,10 +111,12 @@
   font-weight: 500;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  box-shadow: none;
+  transition: box-shadow 0.2s ease;
 }
 
-.clear-clear-btn:hover {
-  opacity: 0.9;
+.clear-clear-btn:hover:not(:disabled) {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .clear-clear-btn:disabled {
@@ -124,8 +127,8 @@
 
 .clear-save-btn {
   padding: 0.5rem 1rem;
-  background: #F3C70C;
-  color: #1A1A1A;
+  background: var(--clear-surface);
+  color: var(--clear-text);
   border: none;
   border-radius: 8px;
   font-size: 1.1rem;
@@ -133,10 +136,12 @@
   font-weight: 500;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  box-shadow: none;
+  transition: box-shadow 0.2s ease;
 }
 
-.clear-save-btn:hover {
-  opacity: 0.9;
+.clear-save-btn:hover:not(:disabled) {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .clear-save-btn:disabled {
