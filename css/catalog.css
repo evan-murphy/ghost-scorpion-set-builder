@@ -172,7 +172,7 @@ body.catalog-view #main-content {
 .catalog-table .catalog-cell-editable input:focus {
   outline: none;
   border-color: var(--accent-red);
-  background: white;
+  background: var(--card-bg);
 }
 
 .catalog-badge {
@@ -320,15 +320,13 @@ body.catalog-view #main-content {
     max-width: 100%;
     border-radius: 16px 16px 0 0;
     top: auto;
+    bottom: 0;
     max-height: 85vh;
+    transform: translateY(100%);
   }
 
   .catalog-drawer.open {
     transform: translateY(0);
-  }
-
-  .catalog-drawer:not(.open) {
-    transform: translateY(100%);
   }
 }
 
@@ -573,6 +571,12 @@ body.catalog-view #main-content {
   color: var(--text);
 }
 
+.catalog-form-helper {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
 /* Column customizer popover */
 .catalog-column-popover {
   position: absolute;
@@ -646,6 +650,57 @@ body.catalog-view #main-content {
   border-radius: 6px;
   font-size: 0.85rem;
   background: var(--card-bg);
+}
+
+/* Add song form (compact) */
+body.catalog-view .catalog-add-song {
+  padding: 1rem;
+  background: var(--card-bg);
+  border-radius: 8px;
+  border: 1px solid var(--divider);
+  flex: 1;
+  min-width: 280px;
+}
+
+body.catalog-view .catalog-add-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 0.5rem 1rem;
+  align-items: end;
+}
+
+body.catalog-view .catalog-add-form .catalog-add-field {
+  margin: 0;
+}
+
+body.catalog-view .catalog-add-form .btn-stage {
+  grid-column: span 1;
+}
+
+@media (max-width: 600px) {
+  body.catalog-view .catalog-add-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+body.catalog-view .catalog-staged {
+  padding: 1rem;
+  background: rgba(34, 197, 94, 0.08);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  border-radius: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+body.catalog-view .catalog-staged .catalog-staged-title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+}
+
+body.catalog-view .catalog-staged .catalog-staged-actions {
+  margin-left: auto;
 }
 
 /* Auth banner (kept for compatibility) */

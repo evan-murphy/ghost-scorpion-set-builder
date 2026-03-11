@@ -78,6 +78,8 @@ const CATALOG = (function() {
 
   function closeDrawer(container, { navigate }) {
     state.drawerOpen = false;
+    state.drawerKeydownCleanup?.();
+    state.drawerKeydownCleanup = null;
     document.body.classList.remove('catalog-drawer-open');
     render(container, { navigate });
   }
@@ -175,7 +177,6 @@ const CATALOG = (function() {
     const drawer = document.getElementById('catalog-drawer');
     if (!overlay || !drawer) return;
 
-    const tabLabels = CATALOG_METADATA.DRAWER_TABS.map(t => t.label).join('|');
     const advanced = state.prefs.get('advancedMode');
 
     let summaryHtml = '';
@@ -240,7 +241,7 @@ const CATALOG = (function() {
     const rightsForm = rightsFields.map(f => {
       const tri = isBatch ? getTriStateValues(f.key) : 'single';
       const val = isBatch && tri === 'mixed' ? '' : (selected[0] ? selected[0][f.key] : '');
-      const opts = f.options ? f.options.map(o => `<option value="${o}" ${val === o ? 'selected' : ''}>${escapeHtml(o)}</option>`).join('') : '';
+      const opts = f.options ? `<option value="">—</option>` + f.options.map(o => `<option value="${o}" ${val === o ? 'selected' : ''}>${escapeHtml(o)}</option>`).join('') : '';
       const input = f.type === 'select' && opts
         ? `<select id="drawer-${f.key}" data-key="${f.key}">${opts}</select>`
         : `<input type="text" id="drawer-${f.key}" data-key="${f.key}" value="${escapeHtml(val || '')}">`;
@@ -326,6 +327,16 @@ const CATALOG = (function() {
     drawer.querySelector('#drawer-discard')?.addEventListener('click', () => closeDrawer(container, { navigate }));
     overlay.addEventListener('click', () => closeDrawer(container, { navigate }));
 
+    const handleKeydown = (e) => {
+      if (e.key === 'Escape') closeDrawer(container, { navigate });
+      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+        e.preventDefault();
+        drawer.querySelector('#drawer-save')?.click();
+      }
+    };
+    document.addEventListener('keydown', handleKeydown);
+    state.drawerKeydownCleanup = () => document.removeEventListener('keydown', handleKeydown);
+
     drawer.querySelector('#drawer-save')?.addEventListener('click', () => {
       const inputs = drawer.querySelectorAll('input[data-key], select[data-key]');
       inputs.forEach(inp => {
@@ -345,7 +356,6 @@ const CATALOG = (function() {
   }
 
   async function render(container, { navigate }) {
-    document.body.classList.add('catalog-view');
     state.prefs = CATALOG_PREFS;
 
     container.innerHTML = '<p>Loading...</p>';
@@ -367,6 +377,31 @@ const CATALOG = (function() {
       </div>
     ` : '';
 
+    const pending = typeof PENDING_SONG !== 'undefined' ? PENDING_SONG.get() : null;
+    const addSongForm = `
+      <div class="catalog-add-song">
+        <h2 style="font-family: var(--font-display); font-size: 1rem; margin-bottom: 0.5rem;">Add new song</h2>
+        <div class="catalog-add-form">
+          <div class="catalog-add-field"><label>Title</label><input type="text" id="new-song-title" placeholder="Canonical title"></div>
+          <div class="catalog-add-field"><label>Display Title</label><input type="text" id="new-song-display" placeholder="Optional"></div>
+          <div class="catalog-add-field"><label>Album</label><input type="text" id="new-song-album" placeholder="e.g. Acid Chalet"></div>
+          <div class="catalog-add-field"><label>Year</label><input type="number" id="new-song-year" placeholder="e.g. 2025" min="1900" max="2100"></div>
+          <div class="catalog-add-field catalog-add-check"><input type="checkbox" id="new-song-active" checked><label for="new-song-active">Active</label></div>
+          <button type="button" class="btn-stage" id="stage-song-btn">Stage song</button>
+        </div>
+      </div>
+    `;
+    const stagedBlock = pending ? `
+      <div class="catalog-staged">
+        <span class="catalog-staged-title">${escapeHtml(pending.display_title || pending.title || 'Untitled')}</span>
+        <span class="catalog-staged-meta">${escapeHtml(pending.album || '')} ${pending.year ? '(' + pending.year + ')' : ''}</span>
+        <div class="catalog-staged-actions">
+          <button type="button" class="btn-save-staged" id="save-staged-btn">Save to sheet</button>
+          <button type="button" class="btn-clear-staged" id="clear-staged-btn">Clear</button>
+        </div>
+      </div>
+    ` : '';
+
     const { tableWrap, mobileItems, filterBar } = renderTable(container, { navigate });
 
     const columnPopoverId = 'catalog-column-popover';
@@ -374,8 +409,9 @@ const CATALOG = (function() {
     const presetOptions = Object.values(CATALOG_METADATA.COLUMN_PRESETS).map(p =>
       `<option value="${p.id}" ${state.prefs.get('columnPreset') === p.id ? 'selected' : ''}>${escapeHtml(p.label)}</option>`
     ).join('');
+    const columnKeys = ['display_title', 'title', 'primary_artist', 'album', 'track_number', 'disc_number', 'year', 'genre', 'release_date', 'explicit', 'isrc', 'iswc', 'release_status'];
     const columnCheckboxes = (state.prefs.get('advancedMode') ? CATALOG_METADATA.ALL_FIELDS : CATALOG_METADATA.SIMPLE_FIELDS)
-      .filter(f => ['title', 'display_title', 'primary_artist', 'album', 'track_number', 'disc_number', 'genre', 'release_date', 'explicit', 'isrc', 'iswc', 'release_status'].includes(f.key))
+      .filter(f => columnKeys.includes(f.key))
       .map(f => `
         <li>
           <input type="checkbox" id="col-${f.key}" data-key="${f.key}" ${columns.includes(f.key) ? 'checked' : ''}>
@@ -409,6 +445,10 @@ const CATALOG = (function() {
         </div>
       </div>
       ${authBanner}
+      <div style="margin: 0 1.5rem 1rem; display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-start;">
+        ${addSongForm}
+        ${stagedBlock}
+      </div>
       ${filterBar}
       <div class="catalog-library">
         ${tableWrap}
@@ -424,6 +464,39 @@ const CATALOG = (function() {
         if (AUTH.isSignedIn()) { unsub && unsub(); render(container, { navigate }); }
       });
     }
+
+    container.querySelector('#stage-song-btn')?.addEventListener('click', () => {
+      const title = container.querySelector('#new-song-title')?.value?.trim();
+      const display = container.querySelector('#new-song-display')?.value?.trim();
+      const album = container.querySelector('#new-song-album')?.value?.trim();
+      const yearVal = container.querySelector('#new-song-year')?.value;
+      const active = container.querySelector('#new-song-active')?.checked;
+      if (!title && !display) return;
+      if (typeof PENDING_SONG !== 'undefined') {
+        PENDING_SONG.set({ title: title || display, display_title: display || title, album: album || '', year: yearVal ? parseInt(yearVal, 10) : null, active: active !== false });
+      }
+      render(container, { navigate });
+    });
+
+    container.querySelector('#save-staged-btn')?.addEventListener('click', async () => {
+      const p = typeof PENDING_SONG !== 'undefined' ? PENDING_SONG.get() : null;
+      if (!p || !CONFIG.APPS_SCRIPT_URL) return;
+      if (typeof AUTH === 'undefined' || !AUTH.isSignedIn()) { alert('Sign in with Google to save to the sheet.'); return; }
+      const btn = container.querySelector('#save-staged-btn');
+      if (btn) btn.disabled = true;
+      try {
+        await DATA.saveNewSong(p, AUTH.getToken());
+        if (typeof PENDING_SONG !== 'undefined') PENDING_SONG.clear();
+        const songs = await DATA.fetchSongs();
+        state.tracks = songs.map(s => DATA.normalizeTrack(s));
+        render(container, { navigate });
+      } catch (e) { alert(e.message || 'Save failed'); } finally { if (btn) btn.disabled = false; }
+    });
+
+    container.querySelector('#clear-staged-btn')?.addEventListener('click', () => {
+      if (typeof PENDING_SONG !== 'undefined') PENDING_SONG.clear();
+      render(container, { navigate });
+    });
 
     container.querySelector('#catalog-advanced')?.addEventListener('change', e => {
       state.prefs.set('advancedMode', e.target.checked);
@@ -498,12 +571,6 @@ const CATALOG = (function() {
       state.selectedIds.clear();
       state.selectedIds.add(id);
       state.drawerOpen = true;
-      const overlay = document.getElementById('catalog-drawer-overlay');
-      const drawer = document.getElementById('catalog-drawer');
-      if (overlay) overlay.classList.add('open');
-      if (drawer) drawer.classList.add('open');
-      renderDrawer(container, { navigate });
-      document.body.classList.add('catalog-drawer-open');
       render(container, { navigate });
     });
 

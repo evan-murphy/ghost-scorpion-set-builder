@@ -193,6 +193,25 @@ const DATA = (function() {
     return setlists.find(s => s.id === id);
   }
 
+  async function handleSaveResponse(res, fallback) {
+    const text = await res.text();
+    let data = {};
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch (e) {
+      if (!res.ok) throw new Error('Save failed');
+      return fallback;
+    }
+    if (!data.ok && data.error) {
+      if (typeof AUTH !== 'undefined' && /invalid|expired|token/i.test(data.error)) {
+        AUTH.signOut && AUTH.signOut();
+      }
+      throw new Error(data.error);
+    }
+    if (!res.ok) throw new Error(data.error || 'Save failed');
+    return data;
+  }
+
   async function saveSetlist(setlist, token) {
     if (!CONFIG.APPS_SCRIPT_URL || !token) throw new Error('Save requires auth');
     const payload = {
@@ -216,13 +235,7 @@ const DATA = (function() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    if (!res.ok) throw new Error('Save failed');
-    const text = await res.text();
-    try {
-      return text ? JSON.parse(text) : {};
-    } catch (e) {
-      return { id: setlist.id };
-    }
+    return handleSaveResponse(res, { id: setlist.id });
   }
 
   async function saveCatalogDisplayTitle(songId, displayTitle, token) {
@@ -238,7 +251,7 @@ const DATA = (function() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    if (!res.ok) throw new Error('Save failed');
+    await handleSaveResponse(res, {});
     return {};
   }
 
@@ -261,13 +274,7 @@ const DATA = (function() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    if (!res.ok) throw new Error('Save failed');
-    const text = await res.text();
-    try {
-      return text ? JSON.parse(text) : {};
-    } catch (e) {
-      return {};
-    }
+    return handleSaveResponse(res, {});
   }
 
   return {

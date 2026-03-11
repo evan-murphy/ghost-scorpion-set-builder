@@ -64,19 +64,21 @@
 
     switch (route.view) {
       case 'archive':
-        document.body.classList.remove('builder-view');
+        document.body.classList.remove('builder-view', 'catalog-view');
         if (typeof ARCHIVE !== 'undefined') ARCHIVE.render(mainContent, { navigate });
         break;
       case 'builder':
         document.body.classList.add('builder-view');
+        document.body.classList.remove('catalog-view');
         if (typeof BUILDER !== 'undefined') BUILDER.render(mainContent, route.id, { navigate });
         break;
       case 'catalog':
+        document.body.classList.add('catalog-view');
         document.body.classList.remove('builder-view');
         if (typeof CATALOG !== 'undefined') CATALOG.render(mainContent, { navigate });
         break;
       default:
-        document.body.classList.remove('builder-view');
+        document.body.classList.remove('builder-view', 'catalog-view');
         if (typeof ARCHIVE !== 'undefined') ARCHIVE.render(mainContent, { navigate });
     }
   }

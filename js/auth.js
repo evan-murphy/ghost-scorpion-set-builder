@@ -17,7 +17,23 @@ const AUTH = (function() {
   }
 
   function getToken() {
+    if (credential && isTokenExpired(credential)) {
+      credential = null;
+      notify();
+      return null;
+    }
     return credential;
+  }
+
+  function isTokenExpired(token) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const exp = payload.exp;
+      if (!exp) return false;
+      return Date.now() >= (exp * 1000) - 60000;
+    } catch (e) {
+      return true;
+    }
   }
 
   function getEmail() {

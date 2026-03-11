@@ -14,14 +14,16 @@
   --font-ui: system-ui, sans-serif;
 }
 
-/* Dark mode (read view) */
+/* Dark mode (read view, catalog) */
 .stage-root,
-body.stage-view {
+body.stage-view,
+body.catalog-view {
   --bg: #121212;
   --text: #F0F0F0;
   --text-secondary: #999999;
   --accent-red: #C93030;
   --divider: rgba(255, 255, 255, 0.06);
+  --card-bg: #1E1E1E;
 }
 
 * {

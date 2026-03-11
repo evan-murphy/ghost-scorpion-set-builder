@@ -13,6 +13,7 @@ const CATALOG_METADATA = (function() {
     { key: 'disc_number', label: 'Disc #', ddex: 'VolumeNumber', section: 'basic', type: 'number' },
     { key: 'genre', label: 'Genre', ddex: 'Genre', section: 'basic' },
     { key: 'release_date', label: 'Release Date', ddex: 'ReleaseDate', section: 'basic', type: 'date' },
+    { key: 'year', label: 'Year', ddex: null, section: 'basic', type: 'number' },
     { key: 'language', label: 'Language', ddex: 'LanguageOfPerformance', section: 'basic' },
     { key: 'explicit', label: 'Explicit', ddex: 'ParentalWarningType', section: 'basic', type: 'boolean' },
     { key: 'artwork', label: 'Artwork', ddex: 'CoverArt', section: 'artwork', type: 'image' },
