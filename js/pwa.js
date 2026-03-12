@@ -11,8 +11,33 @@ const PWA = (function() {
     try {
       wakeLock = await navigator.wakeLock.request('screen');
       if (statusEl) statusEl.textContent = '● Screen awake';
+      return true;
     } catch (err) {
       if (statusEl) statusEl.textContent = '○ Screen may sleep';
+      return false;
+    }
+  }
+
+  async function releaseWakeLock() {
+    if (wakeLock) {
+      try {
+        await wakeLock.release();
+      } catch (e) {}
+      wakeLock = null;
+      if (statusEl) statusEl.textContent = '○ Screen may sleep';
+    }
+  }
+
+  function isWakeLockActive() {
+    return wakeLock !== null;
+  }
+
+  async function toggleWakeLock() {
+    if (wakeLock) {
+      await releaseWakeLock();
+      return false;
+    } else {
+      return await enableWakeLock();
     }
   }
 
@@ -31,5 +56,5 @@ const PWA = (function() {
     }
   });
 
-  return { enableWakeLock, updateStatusEl };
+  return { enableWakeLock, releaseWakeLock, toggleWakeLock, isWakeLockActive, updateStatusEl };
 })();

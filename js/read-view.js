@@ -31,7 +31,10 @@ const READ_VIEW = (function() {
 
     container.innerHTML = `
       <div class="stage-root">
-        <img src="${logoPath}" alt="" class="stage-logo">
+        <a href="/" data-route="/" class="stage-logo-back" aria-label="Back to Setlists">
+          <img src="${logoPath}" alt="" class="stage-logo">
+          <span class="stage-logo-back-arrow material-icons" aria-hidden="true">arrow_back</span>
+        </a>
         ${metaStr ? `<div class="stage-meta">${metaStr}</div>` : ''}
         <ul class="stage-list">
           ${items.map(item => `
@@ -41,19 +44,37 @@ const READ_VIEW = (function() {
         <div class="stage-footer">
           BEWARE THE DANGERS OF A GHOST SCORPION!<br>HTTP://HORROR.SURF
         </div>
-        <div class="stage-actions">
-          <a href="/" data-route="/" style="color:#666;font-size:0.85rem;display:inline-flex;align-items:center;gap:0.35rem;"><span class="material-icons" style="font-size:1rem;">arrow_back</span> Setlists</a>
-          <a href="/${setlist.id}/edit" data-route="/${setlist.id}/edit" style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.5rem 1rem;background:rgba(255,255,255,0.15);color:#F0F0F0;text-decoration:none;border-radius:6px;font-size:0.9rem;"><span class="material-icons" style="font-size:1rem;">edit</span> Edit set list</a>
-          <button class="btn-fullscreen" id="btn-fullscreen">Enter Stage View</button>
-          <span class="wake-status" id="wake-status">○ Screen may sleep</span>
-          <button class="btn-pdf-stage" data-id="${setlist.id}" style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.5rem 1rem;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:#F0F0F0;cursor:pointer;font-size:0.9rem;"><span class="material-icons" style="font-size:1rem;">picture_as_pdf</span> PDF</button>
+        <div class="stage-control-bar">
+          <div class="stage-control-divider"></div>
+          <div class="stage-control-row stage-control-nav">
+            <a href="/" data-route="/" class="stage-control-btn stage-control-back"><span class="material-icons">arrow_back</span> Back to Setlists</a>
+            <a href="/${setlist.id}/edit" data-route="/${setlist.id}/edit" class="stage-control-btn stage-control-edit"><span class="material-icons">edit</span> Edit setlist</a>
+          </div>
+          <button type="button" class="stage-control-primary" id="btn-fullscreen"><span class="material-icons">fullscreen</span> Enter Stage View</button>
+          <div class="stage-control-row stage-control-utils">
+            <div class="stage-control-more-wrap">
+              <button type="button" class="stage-control-btn stage-control-more" id="btn-more" aria-haspopup="true" aria-expanded="false"><span class="material-icons">more_horiz</span> More</button>
+              <div class="stage-control-more-menu" id="more-menu" aria-hidden="true">
+                <div class="stage-control-more-item">
+                  <label class="stage-control-toggle">
+                    <input type="checkbox" id="wake-toggle" ${typeof PWA !== 'undefined' && PWA.isWakeLockActive() ? 'checked' : ''}>
+                    <span class="stage-control-toggle-slider"></span>
+                    <span class="stage-control-toggle-label">Keep screen awake</span>
+                  </label>
+                </div>
+                <button type="button" class="stage-control-more-item stage-control-export-pdf" data-id="${setlist.id}"><span class="material-icons">description</span> Export PDF</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     `;
 
     if (typeof PWA !== 'undefined') {
-      PWA.enableWakeLock();
-      PWA.updateStatusEl(document.getElementById('wake-status'));
+      PWA.enableWakeLock().then(() => {
+        const t = document.getElementById('wake-toggle');
+        if (t) t.checked = PWA.isWakeLockActive();
+      });
     }
 
     const fullscreenBtn = document.getElementById('btn-fullscreen');
@@ -66,11 +87,45 @@ const READ_VIEW = (function() {
       });
     }
 
-    const pdfBtn = container.querySelector('.btn-pdf-stage');
+    const moreBtn = document.getElementById('btn-more');
+    const moreMenu = document.getElementById('more-menu');
+    if (moreBtn && moreMenu) {
+      moreBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isHidden = moreMenu.getAttribute('aria-hidden') === 'true';
+        moreMenu.setAttribute('aria-hidden', isHidden ? 'false' : 'true');
+        moreBtn.setAttribute('aria-expanded', isHidden);
+      });
+      const closeMore = () => {
+        moreMenu.setAttribute('aria-hidden', 'true');
+        moreBtn?.setAttribute('aria-expanded', 'false');
+      };
+      document.addEventListener('click', closeMore);
+      moreMenu.addEventListener('click', (e) => e.stopPropagation());
+        moreMenu.setAttribute('aria-hidden', 'true');
+        moreBtn?.setAttribute('aria-expanded', 'false');
+      });
+    }
+
+    const wakeToggle = document.getElementById('wake-toggle');
+    if (wakeToggle && typeof PWA !== 'undefined') {
+      wakeToggle.addEventListener('change', async () => {
+        if (wakeToggle.checked) {
+          await PWA.enableWakeLock();
+        } else {
+          await PWA.releaseWakeLock();
+        }
+      });
+    }
+
+    const pdfBtn = container.querySelector('.stage-control-export-pdf');
     if (pdfBtn && typeof PDF !== 'undefined') {
-      pdfBtn.addEventListener('click', () => {
+      pdfBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
         const sl = { ...setlist, songs: setlist.song_ids.map(i => songMap[i]).filter(Boolean) };
         PDF.download(sl);
+        if (moreMenu) moreMenu.setAttribute('aria-hidden', 'true');
+        if (moreBtn) moreBtn.setAttribute('aria-expanded', 'false');
       });
     }
   }

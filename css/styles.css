@@ -726,31 +726,200 @@ body.builder-view #main-content {
   margin-top: 2rem;
 }
 
-.stage-root .stage-actions {
-  margin-top: 2rem;
+/* Control bar — clear hierarchy, separated from set list */
+.stage-control-bar {
+  margin-top: 2.5rem;
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 1rem;
+  padding-top: 1rem;
 }
 
-.stage-root .btn-fullscreen {
-  padding: 0.75rem 1.5rem;
-  background: rgba(255, 255, 255, 0.1);
-  color: #F0F0F0;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+.stage-control-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.12);
+  margin: 0 -0.5rem;
+}
+
+.stage-control-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.stage-control-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.9rem;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  text-decoration: none;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s, border-color 0.15s;
 }
 
-.stage-root .btn-fullscreen:hover {
-  background: rgba(255, 255, 255, 0.15);
+.stage-control-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #F0F0F0;
 }
 
-.stage-root .wake-status {
-  font-size: 0.75rem;
-  color: #666;
+.stage-control-btn .material-icons {
+  font-size: 1.1rem;
+}
+
+/* Primary action — Enter Stage View */
+.stage-control-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background: var(--accent-red);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.15rem;
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: filter 0.15s, transform 0.1s;
+}
+
+.stage-control-primary:hover {
+  filter: brightness(1.1);
+}
+
+.stage-control-primary:active {
+  transform: scale(0.98);
+}
+
+.stage-control-primary .material-icons {
+  font-size: 1.35rem;
+}
+
+/* More menu */
+.stage-control-more-wrap {
+  position: relative;
+}
+
+.stage-control-more {
+  background: transparent !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.stage-control-more:hover {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.stage-control-more-menu {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-0.5rem);
+  min-width: 200px;
+  padding: 0.5rem;
+  background: var(--card-bg);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.stage-control-more-menu[aria-hidden="true"] {
+  display: none;
+}
+
+.stage-control-more-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 0.9rem;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.stage-control-more-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.stage-control-more-item .material-icons {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+}
+
+/* Keep screen awake toggle */
+.stage-control-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  width: 100%;
+  padding: 0.25rem 0;
+}
+
+.stage-control-toggle input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.stage-control-toggle-slider {
+  flex-shrink: 0;
+  width: 40px;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 11px;
+  position: relative;
+  transition: background 0.2s;
+}
+
+.stage-control-toggle-slider::after {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background: white;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s;
+}
+
+.stage-control-toggle input:checked + .stage-control-toggle-slider {
+  background: var(--accent-red);
+}
+
+.stage-control-toggle input:checked + .stage-control-toggle-slider::after {
+  transform: translateX(18px);
+}
+
+.stage-control-toggle-label {
+  font-size: 0.9rem;
+  color: var(--text);
 }
 
 /* Catalog view */

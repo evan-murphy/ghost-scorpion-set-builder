@@ -64,7 +64,12 @@ const BUILDER = (function() {
       };
     }
 
-    const state = { ...setlist, songs, songMap };
+    const sortedSetlists = [...setlists].sort((a, b) => {
+      const da = new Date(a.date || 0);
+      const db = new Date(b.date || 0);
+      return db - da;
+    });
+    const state = { ...setlist, songs, songMap, sortedSetlists };
 
     renderClearUI(container, state, activeSongs, { navigate });
     initClearInteractions(container, state, activeSongs, { navigate }, context);
@@ -74,18 +79,35 @@ const BUILDER = (function() {
     const dateStr = state.date ? new Date(state.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Set list';
     const basePath = CONFIG.BASE_PATH || '';
 
+    const sortedSetlists = state.sortedSetlists || [];
+    const currentIdx = state.id ? sortedSetlists.findIndex(s => String(s.id) === String(state.id)) : -1;
+    const prevSetlist = currentIdx > 0 ? sortedSetlists[currentIdx - 1] : null;
+    const nextSetlist = currentIdx >= 0 && currentIdx < sortedSetlists.length - 1 ? sortedSetlists[currentIdx + 1] : null;
+    const showArchiveNav = state.id && sortedSetlists.length > 1;
+
     const listHtml = buildListHTML(state);
 
     container.innerHTML = `
       <div class="clear-builder">
         <header class="clear-header">
-          <button type="button" class="clear-back" aria-label="Back"><span class="material-icons">arrow_back</span></button>
-          <img src="${basePath}/assets/scorpion-black.png" alt="" class="clear-header-logo" height="40">
+          <button type="button" class="clear-back" aria-label="Back to Setlists"><span class="material-icons">arrow_back</span></button>
+          <button type="button" class="clear-header-logo-btn" aria-label="Back to Setlists"><img src="${basePath}/assets/scorpion-black.png" alt="" class="clear-header-logo" height="40"></button>
           <div class="clear-header-center">
+            ${showArchiveNav ? `
+            <div class="clear-archive-nav">
+              <button type="button" class="clear-archive-prev" aria-label="Previous setlist" ${prevSetlist ? '' : 'disabled'} data-id="${prevSetlist?.id ?? ''}"><span class="material-icons">chevron_left</span></button>
+              <button type="button" class="clear-meta-trigger" id="meta-trigger">
+                <span class="clear-meta-date">${dateStr}</span>
+                ${state.venue ? `<span class="clear-meta-venue">${state.venue}</span>` : ''}
+              </button>
+              <button type="button" class="clear-archive-next" aria-label="Next setlist" ${nextSetlist ? '' : 'disabled'} data-id="${nextSetlist?.id ?? ''}"><span class="material-icons">chevron_right</span></button>
+            </div>
+            ` : `
             <button type="button" class="clear-meta-trigger" id="meta-trigger">
               <span class="clear-meta-date">${dateStr}</span>
               ${state.venue ? `<span class="clear-meta-venue">${state.venue}</span>` : ''}
             </button>
+            `}
             <span class="clear-draft-badge" title="Edits saved locally">●</span>
             <div class="clear-header-buttons">
               <button type="button" class="clear-clear-btn" id="clear-setlist-btn" aria-label="Clear all songs" title="Remove all songs from this set list" ${state.song_ids.length === 0 && (state.divider_positions?.length ?? 0) === 0 ? 'disabled' : ''}><span class="material-icons">delete</span></button>
@@ -330,10 +352,27 @@ const BUILDER = (function() {
       openSaveSheet();
     });
 
-    container.querySelector('.clear-back')?.addEventListener('click', () => {
+    const goBack = () => {
       haptic();
       if (typeof DRAFT_STORE !== 'undefined') DRAFT_STORE.save(state, context);
       navigate('/');
+    };
+    container.querySelector('.clear-back')?.addEventListener('click', goBack);
+    container.querySelector('.clear-header-logo-btn')?.addEventListener('click', goBack);
+
+    const goToSetlist = (targetId) => {
+      if (!targetId) return;
+      haptic();
+      if (typeof DRAFT_STORE !== 'undefined') DRAFT_STORE.save(state, context);
+      navigate(`/${targetId}/edit`);
+    };
+    container.querySelector('.clear-archive-prev')?.addEventListener('click', (e) => {
+      const id = e.currentTarget?.dataset?.id;
+      if (id) goToSetlist(id);
+    });
+    container.querySelector('.clear-archive-next')?.addEventListener('click', (e) => {
+      const id = e.currentTarget?.dataset?.id;
+      if (id) goToSetlist(id);
     });
 
     container.querySelector('#song-picker-list')?.addEventListener('click', (e) => {

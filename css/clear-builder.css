@@ -24,12 +24,25 @@
   background: #F3C70C;
   border-bottom: 1px solid rgba(0, 0, 0, 0.15);
 }
-.clear-header-logo {
+.clear-header-logo-btn {
   position: absolute;
   left: 3.75rem;
+  padding: 0.25rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 6px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.clear-header-logo-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.clear-header-logo {
+  display: block;
   height: 40px;
   width: auto;
-  pointer-events: none;
 }
 
 .clear-back {
@@ -94,6 +107,44 @@
 
 .clear-meta-trigger:hover {
   color: var(--clear-accent);
+}
+
+/* Archive prev/next — when editing existing set */
+.clear-archive-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.clear-archive-prev,
+.clear-archive-next {
+  padding: 0.35rem;
+  border: none;
+  background: none;
+  color: #121212;
+  cursor: pointer;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.clear-archive-prev:hover:not(:disabled),
+.clear-archive-next:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.clear-archive-prev:disabled,
+.clear-archive-next:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.clear-archive-prev .material-icons,
+.clear-archive-next .material-icons {
+  font-size: 1.5rem;
 }
 
 .clear-meta-date {
