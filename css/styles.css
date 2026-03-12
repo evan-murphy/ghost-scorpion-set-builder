@@ -166,9 +166,24 @@ body.archive-view .builder-header .header-icons .icon-btn.search-btn .material-i
   font-size: 1.1rem;
 }
 
+/* Touch targets: 44px minimum (accessibility) */
+.icon-btn,
+.btn-new-setlist {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* Hide header on read view */
 body.stage-view .builder-header {
   display: none;
+}
+
+body.stage-view #main-content {
+  padding: 0;
+  max-width: none;
 }
 
 /* Hide header in Clear-style builder */
@@ -370,6 +385,62 @@ body.builder-view #main-content {
 @media (max-width: 900px) {
   .builder-layout {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Mobile: header, card actions, touch targets */
+@media (max-width: 640px) {
+  .builder-header {
+    padding: 0.75rem 1rem;
+    gap: 0.5rem;
+  }
+  .builder-header .logo {
+    height: 40px;
+  }
+  .builder-header nav {
+    gap: 0.5rem;
+  }
+  .builder-header nav a {
+    font-size: 0.85rem;
+  }
+  #header-title {
+    font-size: 1.25rem;
+    margin: 0 0.5rem;
+  }
+  /* Icon-only New setlist on mobile */
+  .btn-new-setlist-text {
+    display: none;
+  }
+  .btn-new-setlist {
+    padding: 0.5rem;
+  }
+  .header-icons {
+    gap: 0.25rem;
+  }
+  #main-content {
+    padding: 1rem;
+  }
+  /* Setlist row actions: larger tap targets, allow wrap when narrow */
+  .setlists-row-actions {
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    flex-shrink: 0;
+  }
+  .setlists-row-actions .icon-btn,
+  .setlists-row-actions a {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .setlists-row-actions .setlists-row-chevron {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 }
 
