@@ -113,6 +113,68 @@ body {
   font-size: 1.5rem;
 }
 
+/* PWA install banner — shown to mobile users not yet installed */
+.pwa-install-banner {
+  background: var(--accent-yellow);
+  color: #121212;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+  font-size: 0.9rem;
+}
+.pwa-install-content {
+  max-width: 40rem;
+  margin: 0 auto;
+}
+.pwa-install-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.pwa-install-icon {
+  font-size: 1.25rem !important;
+  color: #121212;
+}
+.pwa-install-dismiss {
+  margin-left: auto;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #121212;
+  opacity: 0.7;
+  padding: 0.25rem;
+}
+.pwa-install-dismiss:hover {
+  opacity: 1;
+}
+.pwa-install-steps {
+  margin: 0 0 0.5rem 1rem;
+  padding: 0;
+}
+.pwa-install-steps li {
+  margin-bottom: 0.25rem;
+}
+.pwa-install-steps strong {
+  font-weight: 600;
+}
+.pwa-install-add-btn {
+  display: block;
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #121212;
+  color: var(--accent-yellow);
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.pwa-install-add-btn:hover {
+  background: #2a2a2a;
+}
+
 /* Setlists view: yellow header, black text, black scorpion */
 body.archive-view .builder-header {
   background: var(--accent-yellow);
