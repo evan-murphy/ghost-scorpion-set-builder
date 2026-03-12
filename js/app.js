@@ -52,8 +52,8 @@
     if (route.view === 'read') {
       document.body.classList.add('stage-view');
       mainHeader.style.display = 'none';
-      const fab = document.getElementById('fab-new');
-      if (fab) fab.style.display = 'none';
+      const btnNew = document.getElementById('btn-new-setlist');
+      if (btnNew) btnNew.style.display = 'none';
       if (typeof READ_VIEW !== 'undefined') {
         READ_VIEW.render(mainContent, route.id, { navigate });
       }
@@ -65,7 +65,7 @@
     mainHeader.classList.remove('hidden');
 
     const headerTitle = document.getElementById('header-title');
-    const fab = document.getElementById('fab-new');
+    const btnNew = document.getElementById('btn-new-setlist');
     const logo = mainHeader?.querySelector('.logo');
     const basePath = (typeof CONFIG !== 'undefined' && CONFIG.BASE_PATH) || '';
     if (logo) {
@@ -82,8 +82,8 @@
     if (headerTitle) {
       headerTitle.textContent = route.view === 'catalog' ? 'Catalog' : 'Setlists';
     }
-    if (fab) {
-      fab.style.display = route.view === 'archive' ? '' : 'none';
+    if (btnNew) {
+      btnNew.style.display = route.view === 'archive' ? '' : 'none';
     }
 
     switch (route.view) {
