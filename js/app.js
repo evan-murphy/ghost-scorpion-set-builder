@@ -52,6 +52,8 @@
     if (route.view === 'read') {
       document.body.classList.add('stage-view');
       mainHeader.style.display = 'none';
+      const fab = document.getElementById('fab-new');
+      if (fab) fab.style.display = 'none';
       if (typeof READ_VIEW !== 'undefined') {
         READ_VIEW.render(mainContent, route.id, { navigate });
       }
@@ -62,23 +64,42 @@
     mainHeader.style.display = '';
     mainHeader.classList.remove('hidden');
 
+    const headerTitle = document.getElementById('header-title');
+    const fab = document.getElementById('fab-new');
+    const navLinks = mainHeader?.querySelectorAll('.nav-tabs a');
+
+    navLinks?.forEach(a => {
+      const href = a.getAttribute('href');
+      a.classList.toggle('active', ((path === '/' || path === '') && href === '/') || (path === '/catalog' && href === '/catalog'));
+    });
+
+    if (headerTitle) {
+      headerTitle.textContent = route.view === 'catalog' ? 'Catalog' : 'Setlists';
+    }
+    if (fab) {
+      fab.style.display = route.view === 'archive' ? '' : 'none';
+    }
+
     switch (route.view) {
       case 'archive':
+        document.body.classList.add('archive-view');
         document.body.classList.remove('builder-view', 'catalog-view');
         if (typeof ARCHIVE !== 'undefined') ARCHIVE.render(mainContent, { navigate });
         break;
       case 'builder':
+        document.body.classList.remove('archive-view');
         document.body.classList.add('builder-view');
         document.body.classList.remove('catalog-view');
         if (typeof BUILDER !== 'undefined') BUILDER.render(mainContent, route.id, { navigate });
         break;
       case 'catalog':
+        document.body.classList.remove('archive-view');
         document.body.classList.add('catalog-view');
         document.body.classList.remove('builder-view');
         if (typeof CATALOG !== 'undefined') CATALOG.render(mainContent, { navigate });
         break;
       default:
-        document.body.classList.remove('builder-view', 'catalog-view');
+        document.body.classList.remove('archive-view', 'builder-view', 'catalog-view');
         if (typeof ARCHIVE !== 'undefined') ARCHIVE.render(mainContent, { navigate });
     }
   }

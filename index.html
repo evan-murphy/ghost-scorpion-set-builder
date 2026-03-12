@@ -22,14 +22,18 @@
   <div id="app">
     <header id="main-header" class="builder-header">
       <img src="assets/scorpion-white.png" alt="" class="logo" height="48">
-      <h1>BTDOAGS Set List</h1>
-      <nav>
-        <a href="/" data-route="/">Archive</a>
-        <a href="/new" data-route="/new">New Set List</a>
+      <nav class="nav-tabs">
+        <a href="/" data-route="/">Setlists</a>
         <a href="/catalog" data-route="/catalog">Catalog</a>
       </nav>
+      <h1 id="header-title">Setlists</h1>
+      <div class="header-icons">
+        <button type="button" class="icon-btn" aria-label="Search"><span class="material-icons">search</span></button>
+        <button type="button" class="icon-btn" aria-label="Menu"><span class="material-icons">more_vert</span></button>
+      </div>
     </header>
     <main id="main-content"></main>
+    <a href="/new" data-route="/new" class="fab" id="fab-new" aria-label="New setlist"><span class="material-icons">add</span></a>
   </div>
 
   <div id="print-target" aria-hidden="true"></div>
