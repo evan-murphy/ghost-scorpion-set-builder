@@ -48,9 +48,8 @@ const READ_VIEW = (function() {
           <div class="stage-control-divider"></div>
           <div class="stage-control-row stage-control-nav">
             <a href="/" data-route="/" class="stage-control-btn stage-control-back"><span class="material-icons">arrow_back</span> Back to Setlists</a>
-            <a href="/${setlist.id}/edit" data-route="/${setlist.id}/edit" class="stage-control-btn stage-control-edit"><span class="material-icons">edit</span> Edit setlist</a>
           </div>
-          <button type="button" class="stage-control-primary" id="btn-fullscreen"><span class="material-icons">fullscreen</span> Enter Stage View</button>
+          <button type="button" class="stage-control-primary" id="btn-fullscreen"><span class="material-icons" id="btn-fullscreen-icon">fullscreen</span> <span id="btn-fullscreen-label">Enter Stage View</span></button>
           <div class="stage-control-row stage-control-utils">
             <div class="stage-control-more-wrap">
               <button type="button" class="stage-control-btn stage-control-more" id="btn-more" aria-haspopup="true" aria-expanded="false"><span class="material-icons">more_horiz</span> More</button>
@@ -78,13 +77,30 @@ const READ_VIEW = (function() {
     }
 
     const fullscreenBtn = document.getElementById('btn-fullscreen');
+    const fullscreenIcon = document.getElementById('btn-fullscreen-icon');
+    const fullscreenLabel = document.getElementById('btn-fullscreen-label');
+    const updateFullscreenButton = () => {
+      if (!fullscreenBtn || !document.body.contains(fullscreenBtn)) {
+        document.removeEventListener('fullscreenchange', updateFullscreenButton);
+        return;
+      }
+      const isFullscreen = !!document.fullscreenElement;
+      if (fullscreenIcon) fullscreenIcon.textContent = isFullscreen ? 'fullscreen_exit' : 'fullscreen';
+      if (fullscreenLabel) fullscreenLabel.textContent = isFullscreen ? 'Exit Stage View' : 'Enter Stage View';
+    };
     if (fullscreenBtn) {
       fullscreenBtn.addEventListener('click', async () => {
         try {
-          await document.documentElement.requestFullscreen?.();
-          if (typeof PWA !== 'undefined') PWA.enableWakeLock();
+          if (document.fullscreenElement) {
+            await document.exitFullscreen?.();
+          } else {
+            await document.documentElement.requestFullscreen?.();
+            if (typeof PWA !== 'undefined') PWA.enableWakeLock();
+          }
         } catch (e) {}
       });
+      document.addEventListener('fullscreenchange', updateFullscreenButton);
+      updateFullscreenButton();
     }
 
     const moreBtn = document.getElementById('btn-more');

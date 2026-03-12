@@ -847,7 +847,7 @@ body.builder-view #main-content {
   font-size: 1.1rem;
 }
 
-/* Primary action — Enter Stage View */
+/* Primary action — Enter/Exit Stage View */
 .stage-control-primary {
   display: flex;
   align-items: center;
@@ -855,8 +855,8 @@ body.builder-view #main-content {
   gap: 0.5rem;
   width: 100%;
   padding: 1rem 1.5rem;
-  background: var(--accent-red);
-  color: white;
+  background: var(--accent-yellow);
+  color: #121212;
   border: none;
   border-radius: 10px;
   font-size: 1.15rem;
