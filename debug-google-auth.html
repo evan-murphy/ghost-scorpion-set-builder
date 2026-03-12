@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Google Auth Debug</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
+    h1 { font-size: 1.25rem; }
+    .check { margin: 0.5rem 0; padding: 0.5rem; border-radius: 4px; }
+    .pass { background: #d4edda; color: #155724; }
+    .fail { background: #f8d7da; color: #721c24; }
+    .warn { background: #fff3cd; color: #856404; }
+    pre { background: #f5f5f5; padding: 1rem; overflow-x: auto; font-size: 0.85rem; }
+    button { padding: 0.5rem 1rem; margin-top: 1rem; cursor: pointer; }
+    .copy-hint { font-size: 0.9rem; color: #666; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>Google Sign-In Debug</h1>
+  <p>Run this page from the same origin you use for the app (e.g. <code>http://localhost:8080</code> or your production URL).</p>
+  <div id="results"></div>
+  <button id="copy-btn">Copy results to clipboard</button>
+  <p class="copy-hint">Or open DevTools (F12) → Console, and copy any errors shown there.</p>
+
+  <!-- Same order as index.html: config + auth before GSI -->
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer onload="typeof AUTH !== 'undefined' && AUTH.init()"></script>
+
+  <script>
+    (function() {
+      const results = document.getElementById('results');
+      const checks = [];
+
+      function add(label, status, detail) {
+        const cls = status === 'pass' ? 'pass' : status === 'fail' ? 'fail' : 'warn';
+        checks.push({ label, status, detail });
+        results.innerHTML += `<div class="check ${cls}"><strong>${label}</strong>${detail ? '<br><small>' + detail + '</small>' : ''}</div>`;
+      }
+
+      // Wait for scripts to settle (GSI is async)
+      function run() {
+        const origin = window.location.origin;
+        const isLocalhost = /^https?:\/\/localhost(:\d+)?$/.test(origin) || /^https?:\/\/127\.0\.0\.1(:\d+)?$/.test(origin);
+        const isFile = origin === 'null' || origin === '';
+
+        add('Current origin', isFile ? 'fail' : 'pass',
+          origin || 'file:// (Google blocks this — use a local server)');
+
+        if (isFile) {
+          add('OAuth will not work', 'fail',
+            'Google Sign-In requires http:// or https://. Run: npx serve . or python -m http.server 8080');
+        }
+
+        add('CONFIG exists', typeof CONFIG !== 'undefined' ? 'pass' : 'fail',
+          typeof CONFIG !== 'undefined' ? 'GOOGLE_CLIENT_ID: ' + (CONFIG.GOOGLE_CLIENT_ID ? 'set' : 'missing') : '');
+
+        add('GOOGLE_CLIENT_ID', (typeof CONFIG !== 'undefined' && CONFIG.GOOGLE_CLIENT_ID) ? 'pass' : 'fail',
+          CONFIG?.GOOGLE_CLIENT_ID ? CONFIG.GOOGLE_CLIENT_ID.substring(0, 30) + '...' : 'Not set in config.js');
+
+        add('AUTH exists', typeof AUTH !== 'undefined' ? 'pass' : 'fail', '');
+
+        add('window.google', typeof window.google !== 'undefined' ? 'pass' : 'fail',
+          'GSI script must load from accounts.google.com');
+
+        add('google.accounts.id', (window.google?.accounts?.id) ? 'pass' : 'fail',
+          'Needed for renderButton and One Tap');
+
+        // Authorized origins: user must add their origin in Google Cloud Console
+        add('Authorized origins', 'warn',
+          'In Google Cloud Console → Credentials → your OAuth client → Authorized JavaScript origins, add:\n' +
+          (isLocalhost ? '  • ' + origin : '  • ' + origin + '\n  • http://localhost:8080 (for local dev)'));
+
+        // Try init
+        if (typeof AUTH !== 'undefined' && AUTH.init) {
+          AUTH.init().then(ok => {
+            add('AUTH.init()', ok ? 'pass' : 'fail',
+              ok ? 'Google Identity Services initialized' : 'Init failed (check console for errors)');
+            add('renderButton would work', (ok && window.google?.accounts?.id) ? 'pass' : 'fail', '');
+          });
+        } else {
+          add('AUTH.init()', 'fail', 'AUTH or AUTH.init not available');
+        }
+
+        document.getElementById('copy-btn').onclick = () => {
+          const text = checks.map(c => `${c.label}: ${c.status}\n${c.detail || ''}`).join('\n\n');
+          navigator.clipboard.writeText('Google Auth Debug\n' + new Date().toISOString() + '\n\n' + text +
+            '\n\nOrigin: ' + origin + '\nConsole errors: (paste any errors from DevTools Console here)');
+          document.getElementById('copy-btn').textContent = 'Copied!';
+          setTimeout(() => { document.getElementById('copy-btn').textContent = 'Copy results to clipboard'; }, 2000);
+        };
+      }
+
+      // GSI loads async; give it a moment
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => setTimeout(run, 500));
+      } else {
+        setTimeout(run, 500);
+      }
+    })();
+  </script>
+</body>
+</html>
