@@ -107,9 +107,6 @@ body {
   gap: 0.5rem;
   margin-left: auto;
 }
-.header-icons .icon-btn.search-btn .material-icons {
-  color: var(--accent-yellow);
-}
 #header-title {
   flex: 1;
   margin: 0 1rem;
@@ -138,9 +135,6 @@ body.archive-view .builder-header .header-icons .icon-btn {
 body.archive-view .builder-header .header-icons .icon-btn:hover {
   background: rgba(0, 0, 0, 0.1);
 }
-body.archive-view .builder-header .header-icons .icon-btn.search-btn .material-icons {
-  color: #121212;
-}
 
 /* New setlist button — in header on Setlists view */
 .btn-new-setlist {
@@ -148,18 +142,20 @@ body.archive-view .builder-header .header-icons .icon-btn.search-btn .material-i
   align-items: center;
   gap: 0.35rem;
   padding: 0.5rem 0.75rem;
-  background: var(--accent-red);
+  background: #121212;
   color: white;
   border: none;
   border-radius: 6px;
-  font-size: 0.9rem;
-  font-family: inherit;
+  font-size: 1rem;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
   text-decoration: none;
   cursor: pointer;
   transition: background 0.15s;
 }
 .btn-new-setlist:hover {
-  background: #a82828;
+  background: #2a2a2a;
   color: white;
 }
 .btn-new-setlist .material-icons {
@@ -277,13 +273,13 @@ body.builder-view #main-content {
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--text-secondary);
-  margin: 1rem 0 0.5rem;
+  margin: 0.75rem 0 0.35rem;
 }
 .setlists-card {
   background: var(--card-bg);
   border-radius: 8px;
   padding: 1rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.35rem;
 }
 .setlists-card-date {
   font-family: var(--font-display);
@@ -322,10 +318,10 @@ body.builder-view #main-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem;
+  padding: 0.65rem 1rem;
   background: var(--card-bg);
   border-radius: 8px;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.35rem;
   cursor: pointer;
   transition: background 0.15s;
 }
