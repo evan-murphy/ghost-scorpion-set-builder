@@ -38,6 +38,8 @@ SETLISTS_SHEET_NAME: 'setlists'
 6. Click **Deploy**
 7. Copy the **Web app URL** and add it to `js/config.js` as `APPS_SCRIPT_URL`
 
+**Important:** Apps Script does not support CORS from browsers. You must also deploy the CORS proxy (see `cloudflare-worker/README.md`) and set `APPS_SCRIPT_PROXY_URL` in config.
+
 ## 5. OAuth client ID (for Sign-in)
 
 The app uses Google Identity Services for sign-in. You need an OAuth 2.0 Client ID:

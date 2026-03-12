@@ -70,3 +70,5 @@ npx serve -s -l 8080
 Then open http://localhost:8080
 
 **Configure your own instance** — Edit `js/config.js` for sheet IDs, API key, and OAuth. See `apps-script/README.md` for the Apps Script setup.
+
+**Save / CORS** — Apps Script blocks CORS from browsers. Deploy the Cloudflare Worker proxy (`cloudflare-worker/README.md`) and set `APPS_SCRIPT_PROXY_URL` in config.

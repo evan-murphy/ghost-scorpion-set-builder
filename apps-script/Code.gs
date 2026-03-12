@@ -18,19 +18,6 @@ const CONFIG = {
   ]
 };
 
-/**
- * Handle CORS preflight (OPTIONS). Browsers send this before POST when
- * using custom headers. Without it, the preflight fails and POST is blocked.
- */
-function doOptions(e) {
-  const output = ContentService.createTextOutput('');
-  output.setMimeType(ContentService.MimeType.TEXT);
-  output.addHeader('Access-Control-Allow-Origin', '*');
-  output.addHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  output.addHeader('Access-Control-Allow-Headers', 'Content-Type');
-  return output;
-}
-
 function doPost(e) {
   let result = { ok: false, error: 'Invalid request' };
   try {
@@ -70,11 +57,9 @@ function doPost(e) {
 }
 
 function response(obj) {
-  const output = ContentService
+  return ContentService
     .createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON);
-  output.addHeader('Access-Control-Allow-Origin', '*');
-  return output;
 }
 
 function verifyToken(token) {

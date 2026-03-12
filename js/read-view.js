@@ -20,12 +20,6 @@ const READ_VIEW = (function() {
     const songMap = Object.fromEntries(songs.map(s => [s.id, s]));
     const items = buildDisplayItems(setlist, songMap);
 
-    const dateStr = setlist.show_date && setlist.date
-      ? new Date(setlist.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })
-      : '';
-    const venueStr = setlist.show_venue && setlist.venue ? setlist.venue : '';
-    const metaStr = [dateStr, venueStr].filter(Boolean).join(' · ');
-
     const basePath = CONFIG.BASE_PATH || '';
     const logoPath = basePath + '/assets/scorpion-white.png';
 
@@ -35,15 +29,11 @@ const READ_VIEW = (function() {
           <img src="${logoPath}" alt="" class="stage-logo">
           <span class="stage-logo-back-arrow material-icons" aria-hidden="true">arrow_back</span>
         </a>
-        ${metaStr ? `<div class="stage-meta">${metaStr}</div>` : ''}
         <ul class="stage-list">
           ${items.map(item => `
             <li class="${item.divider ? 'divider' : ''}">${item.divider ? '—' : item.display_title}</li>
           `).join('')}
         </ul>
-        <div class="stage-footer">
-          BEWARE THE DANGERS OF A GHOST SCORPION!<br>HTTP://HORROR.SURF
-        </div>
         <div class="stage-control-bar">
           <div class="stage-control-divider"></div>
           <div class="stage-control-row stage-control-nav">

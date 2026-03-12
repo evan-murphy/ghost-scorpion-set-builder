@@ -212,8 +212,13 @@ const DATA = (function() {
     return data;
   }
 
+  function getSaveUrl() {
+    return (CONFIG.APPS_SCRIPT_PROXY_URL || CONFIG.APPS_SCRIPT_URL) || '';
+  }
+
   async function saveSetlist(setlist, token) {
-    if (!CONFIG.APPS_SCRIPT_URL || !token) throw new Error('Save requires auth');
+    const url = getSaveUrl();
+    if (!url || !token) throw new Error('Save requires auth');
     const payload = {
       action: 'saveSetlist',
       token,
@@ -230,7 +235,7 @@ const DATA = (function() {
         notes: setlist.notes || ''
       }
     };
-    const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+    const res = await fetch(url, {
       method: 'POST',
       body: new URLSearchParams({ data: JSON.stringify(payload) })
     });
@@ -238,14 +243,15 @@ const DATA = (function() {
   }
 
   async function saveCatalogDisplayTitle(songId, displayTitle, token) {
-    if (!CONFIG.APPS_SCRIPT_URL || !token) throw new Error('Save requires auth');
+    const url = getSaveUrl();
+    if (!url || !token) throw new Error('Save requires auth');
     const payload = {
       action: 'saveCatalogDisplayTitle',
       token,
       songId,
       displayTitle: displayTitle || null
     };
-    const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+    const res = await fetch(url, {
       method: 'POST',
       body: new URLSearchParams({ data: JSON.stringify(payload) })
     });
@@ -254,7 +260,8 @@ const DATA = (function() {
   }
 
   async function saveNewSong(song, token) {
-    if (!CONFIG.APPS_SCRIPT_URL || !token) throw new Error('Save requires auth');
+    const url = getSaveUrl();
+    if (!url || !token) throw new Error('Save requires auth');
     const payload = {
       action: 'saveNewSong',
       token,
@@ -267,7 +274,7 @@ const DATA = (function() {
         active: song.active !== false
       }
     };
-    const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+    const res = await fetch(url, {
       method: 'POST',
       body: new URLSearchParams({ data: JSON.stringify(payload) })
     });

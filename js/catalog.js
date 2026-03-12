@@ -61,7 +61,7 @@ const CATALOG = (function() {
     if (typeof DISPLAY_TITLE_OVERRIDES !== 'undefined') {
       DISPLAY_TITLE_OVERRIDES.set(id, val || null);
     }
-    if (typeof AUTH !== 'undefined' && AUTH.isSignedIn() && CONFIG.APPS_SCRIPT_URL) {
+    if (typeof AUTH !== 'undefined' && AUTH.isSignedIn() && (CONFIG.APPS_SCRIPT_URL || CONFIG.APPS_SCRIPT_PROXY_URL)) {
       DATA.saveCatalogDisplayTitle(id, val || null, AUTH.getToken()).catch(e => console.warn('Save failed:', e));
     }
   }
@@ -386,7 +386,7 @@ const CATALOG = (function() {
     state.tracks = songs.map(s => DATA.normalizeTrack(s));
 
     const signedIn = typeof AUTH !== 'undefined' && AUTH.isSignedIn();
-    const canSaveToSheet = !!CONFIG.APPS_SCRIPT_URL;
+    const canSaveToSheet = !!(CONFIG.APPS_SCRIPT_URL || CONFIG.APPS_SCRIPT_PROXY_URL);
     const advanced = state.prefs.get('advancedMode');
 
     const authBanner = !signedIn && canSaveToSheet ? `
@@ -503,7 +503,7 @@ const CATALOG = (function() {
 
     container.querySelector('#save-staged-btn')?.addEventListener('click', async () => {
       const p = typeof PENDING_SONG !== 'undefined' ? PENDING_SONG.get() : null;
-      if (!p || !CONFIG.APPS_SCRIPT_URL) return;
+      if (!p || (!CONFIG.APPS_SCRIPT_URL && !CONFIG.APPS_SCRIPT_PROXY_URL)) return;
       if (typeof AUTH === 'undefined' || !AUTH.isSignedIn()) { alert('Sign in with Google to save to the sheet.'); return; }
       const btn = container.querySelector('#save-staged-btn');
       if (btn) btn.disabled = true;

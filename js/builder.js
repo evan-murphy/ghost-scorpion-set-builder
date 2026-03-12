@@ -350,8 +350,8 @@ const BUILDER = (function() {
 
     container.querySelector('#save-setlist-btn')?.addEventListener('click', () => {
       haptic();
-      if (!CONFIG.APPS_SCRIPT_URL) {
-        alert('Save is not configured.\n\n1. Deploy the Apps Script (apps-script/Code.gs) at script.google.com as a Web app\n2. Copy the Web app URL into js/config.js as APPS_SCRIPT_URL');
+      if (!CONFIG.APPS_SCRIPT_URL && !CONFIG.APPS_SCRIPT_PROXY_URL) {
+        alert('Save is not configured.\n\n1. Deploy the Apps Script (apps-script/Code.gs) at script.google.com as a Web app\n2. Deploy the CORS proxy (cloudflare-worker/) and set APPS_SCRIPT_PROXY_URL in config.js');
         return;
       }
       syncStateFromDOM(container, state);
