@@ -17,6 +17,33 @@
   box-sizing: border-box;
 }
 
+/* Material Icons — industry-standard icon set */
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 1.25rem;
+  vertical-align: middle;
+  -webkit-font-smoothing: antialiased;
+}
+.icon-btn {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  color: inherit;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.icon-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+.icon-btn .material-icons {
+  font-size: 1.2rem;
+}
+
 body {
   margin: 0;
   font-family: var(--font-ui);
