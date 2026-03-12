@@ -232,7 +232,7 @@ const DATA = (function() {
     };
     const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify(payload)
     });
     return handleSaveResponse(res, { id: setlist.id });
@@ -248,7 +248,7 @@ const DATA = (function() {
     };
     const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify(payload)
     });
     await handleSaveResponse(res, {});
@@ -271,7 +271,7 @@ const DATA = (function() {
     };
     const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify(payload)
     });
     return handleSaveResponse(res, {});
