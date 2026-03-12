@@ -80,6 +80,7 @@ const BUILDER = (function() {
       <div class="clear-builder">
         <header class="clear-header">
           <button type="button" class="clear-back" aria-label="Back"><span class="material-icons">arrow_back</span></button>
+          <img src="${basePath}/assets/scorpion-black.png" alt="" class="clear-header-logo" height="40">
           <div class="clear-header-center">
             <button type="button" class="clear-meta-trigger" id="meta-trigger">
               <span class="clear-meta-date">${dateStr}</span>
