@@ -79,7 +79,7 @@ const BUILDER = (function() {
     container.innerHTML = `
       <div class="clear-builder">
         <header class="clear-header">
-          <button type="button" class="clear-back" aria-label="Back">←</button>
+          <button type="button" class="clear-back" aria-label="Back"><span class="material-icons">arrow_back</span></button>
           <div class="clear-header-center">
             <button type="button" class="clear-meta-trigger" id="meta-trigger">
               <span class="clear-meta-date">${dateStr}</span>
@@ -87,8 +87,8 @@ const BUILDER = (function() {
             </button>
             <span class="clear-draft-badge" title="Edits saved locally">●</span>
             <div class="clear-header-buttons">
-              <button type="button" class="clear-clear-btn" id="clear-setlist-btn" aria-label="Clear all songs" title="Remove all songs from this set list" ${state.song_ids.length === 0 && (state.divider_positions?.length ?? 0) === 0 ? 'disabled' : ''}>🗑️</button>
-              <button type="button" class="clear-save-btn" id="save-setlist-btn" aria-label="Save">💾</button>
+              <button type="button" class="clear-clear-btn" id="clear-setlist-btn" aria-label="Clear all songs" title="Remove all songs from this set list" ${state.song_ids.length === 0 && (state.divider_positions?.length ?? 0) === 0 ? 'disabled' : ''}><span class="material-icons">delete</span></button>
+              <button type="button" class="clear-save-btn" id="save-setlist-btn" aria-label="Save"><span class="material-icons">check</span></button>
             </div>
           </div>
         </header>

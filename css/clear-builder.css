@@ -51,6 +51,10 @@
   transform: scale(0.95);
 }
 
+.clear-back .material-icons {
+  font-size: 1.5rem;
+}
+
 .clear-header-center {
   display: flex;
   flex-direction: column;
@@ -117,6 +121,11 @@
 
 .clear-clear-btn:hover:not(:disabled) {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.clear-clear-btn .material-icons,
+.clear-save-btn .material-icons {
+  font-size: 1.2rem;
 }
 
 .clear-clear-btn:disabled {
