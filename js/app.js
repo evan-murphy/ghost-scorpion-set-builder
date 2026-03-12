@@ -66,6 +66,12 @@
 
     const headerTitle = document.getElementById('header-title');
     const fab = document.getElementById('fab-new');
+    const logo = mainHeader?.querySelector('.logo');
+    const basePath = (typeof CONFIG !== 'undefined' && CONFIG.BASE_PATH) || '';
+    if (logo) {
+      logo.src = basePath + (route.view === 'archive' ? '/assets/scorpion-black.png' : '/assets/scorpion-white.png');
+    }
+
     const navLinks = mainHeader?.querySelectorAll('.nav-tabs a');
 
     navLinks?.forEach(a => {

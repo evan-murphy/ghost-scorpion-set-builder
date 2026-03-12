@@ -107,10 +107,39 @@ body {
   gap: 0.5rem;
   margin-left: auto;
 }
+.header-icons .icon-btn.search-btn .material-icons {
+  color: var(--accent-yellow);
+}
 #header-title {
   flex: 1;
   margin: 0 1rem;
   font-size: 1.5rem;
+}
+
+/* Setlists view: yellow header, black text, black scorpion */
+body.archive-view .builder-header {
+  background: var(--accent-yellow);
+  color: #121212;
+  border-bottom-color: rgba(0, 0, 0, 0.15);
+}
+body.archive-view .builder-header .nav-tabs a {
+  color: rgba(0, 0, 0, 0.7);
+}
+body.archive-view .builder-header .nav-tabs a:hover,
+body.archive-view .builder-header .nav-tabs a.active {
+  color: #121212;
+}
+body.archive-view .builder-header #header-title {
+  color: #121212;
+}
+body.archive-view .builder-header .header-icons .icon-btn {
+  color: #121212;
+}
+body.archive-view .builder-header .header-icons .icon-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+body.archive-view .builder-header .header-icons .icon-btn.search-btn .material-icons {
+  color: #121212;
 }
 
 /* FAB — New setlist */

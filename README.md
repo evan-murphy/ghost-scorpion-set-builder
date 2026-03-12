@@ -8,7 +8,7 @@ A set list builder and archive for **Beware The Dangers Of A Ghost Scorpion!** �
 
 ## What it does
 
-- **Archive** — Browse all set lists, newest first
+- **Setlists** — Browse all set lists (Tonight card when relevant), create new, duplicate, edit; FAB for quick add
 - **Builder** — Compose set lists by picking songs, reordering, and adding breaks; live preview as you edit
 - **Read view** — Mobile-optimized dark mode for on-stage use
 - **PDF** — Download print-ready PDFs that match the band’s existing format
@@ -44,7 +44,7 @@ A set list builder and archive for **Beware The Dangers Of A Ghost Scorpion!** �
 │   ├── app.js          # Routing
 │   ├── data.js         # Sheets API + mock data
 │   ├── builder.js      # Set list composer (Clear-style UI)
-│   ├── archive.js      # Set list list
+│   ├── archive.js      # Setlists home (list, Tonight card, FAB)
 │   ├── read-view.js    # Stage view (dark, fullscreen)
 │   ├── catalog.js      # Song catalog
 │   ├── pdf.js          # PDF generation (jsPDF + html2canvas)
