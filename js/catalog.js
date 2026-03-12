@@ -10,7 +10,8 @@ const CATALOG = (function() {
     drawerOpen: false,
     activeTab: 'summary',
     pendingEdits: {},
-    prefs: null
+    prefs: null,
+    searchQuery: ''
   };
 
   function escapeHtml(str) {
@@ -103,6 +104,13 @@ const CATALOG = (function() {
       const preset = CATALOG_METADATA.FILTER_PRESETS.find(f => f.id === activeFilter);
       if (preset) sorted = sorted.filter(preset.fn);
     }
+    if (state.searchQuery) {
+      const q = state.searchQuery.toLowerCase().trim();
+      sorted = sorted.filter(t => {
+        const s = [t.display_title, t.title, t.album, t.primary_artist].filter(Boolean).join(' ').toLowerCase();
+        return s.includes(q);
+      });
+    }
 
     const thead = columns.map(col => {
       const f = CATALOG_METADATA.getField(col);
@@ -156,6 +164,10 @@ const CATALOG = (function() {
 
     const filterBar = `
       <div class="catalog-filter-bar">
+        <div class="catalog-search-wrap">
+          <span class="material-icons catalog-search-icon">search</span>
+          <input type="text" id="catalog-search" class="catalog-search-input" placeholder="Search songs..." value="${escapeHtml(state.searchQuery || '')}" aria-label="Search">
+        </div>
         <select id="catalog-filter" aria-label="Filter">
           <option value="">All tracks</option>
           ${CATALOG_METADATA.FILTER_PRESETS.map(f => `
@@ -436,7 +448,7 @@ const CATALOG = (function() {
         <div class="catalog-toolbar">
           <div class="catalog-mode-toggle">
             <input type="checkbox" id="catalog-advanced" ${advanced ? 'checked' : ''}>
-            <label for="catalog-advanced">Show advanced metadata</label>
+            <label for="catalog-advanced"><span class="material-icons" style="font-size:1rem;vertical-align:middle;">tune</span> Show advanced metadata</label>
           </div>
           <div style="position:relative">
             <button type="button" class="catalog-toolbar-btn" id="catalog-columns-btn">Fields shown</button>
@@ -449,9 +461,9 @@ const CATALOG = (function() {
             </div>
           </div>
           ${state.selectedIds.size > 0 ? `
-            <button type="button" class="catalog-toolbar-btn active" id="catalog-get-info">Get Info (${state.selectedIds.size})</button>
+            <button type="button" class="catalog-toolbar-btn active" id="catalog-get-info"><span class="material-icons" style="font-size:1rem;vertical-align:middle;">edit</span> Get Info (${state.selectedIds.size})</button>
           ` : `
-            <button type="button" class="catalog-toolbar-btn" id="catalog-get-info" disabled>Get Info</button>
+            <button type="button" class="catalog-toolbar-btn" id="catalog-get-info" disabled><span class="material-icons" style="font-size:1rem;vertical-align:middle;">edit</span> Get Info</button>
           `}
         </div>
       </div>
@@ -511,6 +523,11 @@ const CATALOG = (function() {
 
     container.querySelector('#catalog-advanced')?.addEventListener('change', e => {
       state.prefs.set('advancedMode', e.target.checked);
+      render(container, { navigate });
+    });
+
+    container.querySelector('#catalog-search')?.addEventListener('input', e => {
+      state.searchQuery = e.target.value || '';
       render(container, { navigate });
     });
 
