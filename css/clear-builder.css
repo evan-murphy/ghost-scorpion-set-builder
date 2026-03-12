@@ -321,6 +321,28 @@
   font-family: system-ui, sans-serif;
 }
 
+/* One-time tip for first-time users */
+.clear-break-hint.hidden {
+  display: none !important;
+}
+.clear-break-hint {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  color: var(--clear-muted);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.2s ease;
+}
+
+.clear-break-hint:hover,
+.clear-break-hint:active {
+  opacity: 0.8;
+}
+
 /* Bottom zone: add row + trash (same spot, contextual) */
 .clear-bottom-zone {
   position: relative;

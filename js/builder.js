@@ -119,6 +119,7 @@ const BUILDER = (function() {
         <main class="clear-list-surface">
           <ul class="clear-list" id="setlist-items">${listHtml}</ul>
           <div class="clear-bottom-zone">
+            <button type="button" class="clear-break-hint hidden" id="break-hint" aria-label="Dismiss tip" title="Long-press a song to add a break">Tip: Long-press a song to add a break</button>
             <button type="button" class="clear-random-row" id="random-songs-trigger" title="Fill with 13 random songs" ${state.song_ids.length === 0 ? '' : 'hidden'}>
               <span class="clear-random-icon">🦇</span>
               <span>Random</span>
@@ -275,6 +276,15 @@ const BUILDER = (function() {
       }) : null;
     };
 
+    const updateBreakHint = () => {
+      const breakHint = container.querySelector('#break-hint');
+      if (breakHint) {
+        let hintSeen = false;
+        try { hintSeen = !!localStorage.getItem('btdoags-break-hint-seen'); } catch (_) {}
+        breakHint.classList.toggle('hidden', !(state.song_ids.length > 0 && !hintSeen));
+      }
+    };
+
     const refresh = () => {
       list.innerHTML = buildListHTML(state);
       updateSongPickerList(container.querySelector('#song-picker-list'), state, activeSongs);
@@ -295,7 +305,9 @@ const BUILDER = (function() {
         const hasItems = state.song_ids.length > 0 || (state.divider_positions?.length ?? 0) > 0;
         clearBtn.disabled = !hasItems;
       }
+      updateBreakHint();
       initSortable(container, state, refresh, context);
+      initLongPress(container, state, refresh);
       scheduleDraftSave(state, context);
     };
 
@@ -309,6 +321,11 @@ const BUILDER = (function() {
       overlay?.classList.remove('open');
       document.body.style.overflow = '';
     };
+
+    container.querySelector('#break-hint')?.addEventListener('click', () => {
+      try { localStorage.setItem('btdoags-break-hint-seen', '1'); } catch (_) {}
+      container.querySelector('#break-hint')?.classList.add('hidden');
+    });
 
     container.querySelector('#random-songs-trigger')?.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -454,6 +471,7 @@ const BUILDER = (function() {
 
     initSortable(container, state, refresh, context);
     initLongPress(container, state, refresh);
+    updateBreakHint();
   }
 
   function initSortable(container, state, refresh, context) {
@@ -551,8 +569,8 @@ const BUILDER = (function() {
 
     const addBreak = (li) => {
       const idx = parseInt(li.dataset.index, 10);
-      const insertAfter = idx - 1;
-      if (insertAfter >= 0 && !state.divider_positions.includes(insertAfter)) {
+      const insertAfter = idx; // break appears below this song (between it and the next)
+      if (!state.divider_positions.includes(insertAfter)) {
         state.divider_positions.push(insertAfter);
         state.divider_positions.sort((a, b) => a - b);
         haptic();
