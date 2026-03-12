@@ -102,9 +102,6 @@ const READ_VIEW = (function() {
       };
       document.addEventListener('click', closeMore);
       moreMenu.addEventListener('click', (e) => e.stopPropagation());
-        moreMenu.setAttribute('aria-hidden', 'true');
-        moreBtn?.setAttribute('aria-expanded', 'false');
-      });
     }
 
     const wakeToggle = document.getElementById('wake-toggle');

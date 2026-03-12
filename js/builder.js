@@ -119,7 +119,7 @@ const BUILDER = (function() {
         <main class="clear-list-surface">
           <ul class="clear-list" id="setlist-items">${listHtml}</ul>
           <div class="clear-bottom-zone">
-            <button type="button" class="clear-random-row" id="random-songs-trigger" title="Fill with 13 random songs" ${state.song_ids.length === 0 ? '' : 'style="display:none" aria-hidden="true"'}>
+            <button type="button" class="clear-random-row" id="random-songs-trigger" title="Fill with 13 random songs" ${state.song_ids.length === 0 ? '' : 'hidden'}>
               <span class="clear-random-icon">🦇</span>
               <span>Random</span>
             </button>
@@ -281,8 +281,14 @@ const BUILDER = (function() {
       const randomBtn = container.querySelector('#random-songs-trigger');
       if (randomBtn) {
         const isEmpty = state.song_ids.length === 0;
-        randomBtn.style.display = isEmpty ? '' : 'none';
-        randomBtn.setAttribute('aria-hidden', isEmpty ? 'false' : 'true');
+        if (isEmpty) {
+          randomBtn.removeAttribute('hidden');
+        } else {
+          if (document.activeElement === randomBtn) {
+            container.querySelector('#add-song-trigger')?.focus();
+          }
+          randomBtn.setAttribute('hidden', '');
+        }
       }
       const clearBtn = container.querySelector('#clear-setlist-btn');
       if (clearBtn) {
