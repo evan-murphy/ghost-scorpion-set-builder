@@ -51,6 +51,7 @@
 
     if (route.view === 'read') {
       document.body.classList.add('stage-view');
+      document.body.classList.remove('builder-view', 'archive-view', 'catalog-view');
       mainHeader.style.display = 'none';
       const btnNew = document.getElementById('btn-new-setlist');
       if (btnNew) btnNew.style.display = 'none';
