@@ -4,9 +4,24 @@
  */
 
 const BUILDER = (function() {
+  const BREAK_HINT_STORAGE_KEY = 'btdoags-break-hint-dismissed';
   let sortable = null;
   let trashSortable = null;
   let saveDraftTimer = null;
+
+  function wasBreakHintDismissed() {
+    try {
+      return localStorage.getItem(BREAK_HINT_STORAGE_KEY) === '1';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function dismissBreakHint() {
+    try {
+      localStorage.setItem(BREAK_HINT_STORAGE_KEY, '1');
+    } catch (e) {}
+  }
 
   async function render(container, id, { navigate }) {
     container.innerHTML = '<p>Loading...</p>';
@@ -279,9 +294,8 @@ const BUILDER = (function() {
     const updateBreakHint = () => {
       const breakHint = container.querySelector('#break-hint');
       if (breakHint) {
-        let hintSeen = false;
-        try { hintSeen = !!localStorage.getItem('btdoags-break-hint-seen'); } catch (_) {}
-        breakHint.classList.toggle('hidden', !(state.song_ids.length > 0 && !hintSeen));
+        const show = state.song_ids.length > 0 && !wasBreakHintDismissed();
+        breakHint.classList.toggle('hidden', !show);
       }
     };
 
@@ -323,7 +337,7 @@ const BUILDER = (function() {
     };
 
     container.querySelector('#break-hint')?.addEventListener('click', () => {
-      try { localStorage.setItem('btdoags-break-hint-seen', '1'); } catch (_) {}
+      dismissBreakHint();
       container.querySelector('#break-hint')?.classList.add('hidden');
     });
 
