@@ -239,9 +239,18 @@ body.stage-view .builder-header {
   display: none;
 }
 
+body.stage-view #app,
+body.stage-view #main-content {
+  height: 100dvh;
+  min-height: 100dvh;
+}
+
 body.stage-view #main-content {
   padding: 0;
   max-width: none;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 /* Hide header in Clear-style builder */
@@ -774,7 +783,10 @@ body.builder-view #main-content {
 
 /* ========== READ VIEW (Stage / Mobile) ========== */
 .stage-root {
-  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
   background: #121212;
   color: #F0F0F0;
   padding:
@@ -785,18 +797,25 @@ body.builder-view #main-content {
   font-family: var(--font-display);
 }
 
+.stage-header {
+  flex-shrink: 0;
+}
+
+.stage-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .stage-logo-back {
   display: block;
-  position: sticky;
-  top: 0;
-  z-index: 10;
   margin: 0 auto 1rem;
   width: fit-content;
   padding: 0.5rem 0;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   text-decoration: none;
-  background: var(--bg);
 }
 
 .stage-logo-back:hover .stage-logo-back-arrow,

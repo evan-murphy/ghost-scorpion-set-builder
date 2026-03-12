@@ -25,10 +25,13 @@ const READ_VIEW = (function() {
 
     container.innerHTML = `
       <div class="stage-root">
-        <a href="/" data-route="/" class="stage-logo-back" aria-label="Back to Setlists">
-          <img src="${logoPath}" alt="" class="stage-logo">
-          <span class="stage-logo-back-arrow material-icons" aria-hidden="true">arrow_back</span>
-        </a>
+        <header class="stage-header">
+          <a href="/" data-route="/" class="stage-logo-back" aria-label="Back to Setlists">
+            <img src="${logoPath}" alt="" class="stage-logo">
+            <span class="stage-logo-back-arrow material-icons" aria-hidden="true">arrow_back</span>
+          </a>
+        </header>
+        <div class="stage-scroll">
         <ul class="stage-list">
           ${items.map(item => `
             <li class="${item.divider ? 'divider' : ''}">${item.divider ? '—' : item.display_title}</li>
@@ -55,6 +58,7 @@ const READ_VIEW = (function() {
               </div>
             </div>
           </div>
+        </div>
         </div>
       </div>
     `;
