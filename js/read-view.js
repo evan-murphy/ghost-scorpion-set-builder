@@ -42,11 +42,11 @@ const READ_VIEW = (function() {
           BEWARE THE DANGERS OF A GHOST SCORPION!<br>HTTP://HORROR.SURF
         </div>
         <div class="stage-actions">
-          <a href="/" style="color:#666;font-size:0.85rem;">← Archive</a>
-          <a href="/${setlist.id}/edit" style="display:inline-block;padding:0.5rem 1rem;background:rgba(255,255,255,0.15);color:#F0F0F0;text-decoration:none;border-radius:6px;font-size:0.9rem;">Edit set list</a>
+          <a href="/" data-route="/" style="color:#666;font-size:0.85rem;display:inline-flex;align-items:center;gap:0.35rem;"><span class="material-icons" style="font-size:1rem;">arrow_back</span> Setlists</a>
+          <a href="/${setlist.id}/edit" data-route="/${setlist.id}/edit" style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.5rem 1rem;background:rgba(255,255,255,0.15);color:#F0F0F0;text-decoration:none;border-radius:6px;font-size:0.9rem;"><span class="material-icons" style="font-size:1rem;">edit</span> Edit set list</a>
           <button class="btn-fullscreen" id="btn-fullscreen">Enter Stage View</button>
           <span class="wake-status" id="wake-status">○ Screen may sleep</span>
-          <button class="btn-pdf-stage" data-id="${setlist.id}" style="padding:0.5rem 1rem;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:#F0F0F0;cursor:pointer;font-size:0.9rem;">Download PDF</button>
+          <button class="btn-pdf-stage" data-id="${setlist.id}" style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.5rem 1rem;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:#F0F0F0;cursor:pointer;font-size:0.9rem;"><span class="material-icons" style="font-size:1rem;">picture_as_pdf</span> PDF</button>
         </div>
       </div>
     `;
