@@ -16,7 +16,7 @@ Create a new Google Sheet and import these CSVs as two separate sheets.
 
 ## Column Reference
 
-**songs:** `id` | `title` | `display_title` | `album` | `year` | `notes` | `active`
+**songs:** `id` | `title` | `display_title` | `album` | `year` | `notes` | `active` | `duration_sec` | `artwork` | `song_type`
 
 **setlists:** `id` | `date` | `venue` | `mode` | `song_ids` | `divider_positions` | `show_date` | `show_venue` | `logo_variant` | `notes` | `created_at`
 

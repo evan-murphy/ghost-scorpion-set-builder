@@ -26,6 +26,11 @@ const CATALOG = (function() {
     if (v == null || v === '') return '—';
     if (key === 'explicit') return v ? 'E' : '';
     if (key === 'release_status') return String(v);
+    if (key === 'duration_sec' && typeof v === 'number') {
+      const m = Math.floor(v / 60);
+      const s = v % 60;
+      return `${m}:${String(s).padStart(2, '0')}`;
+    }
     if (Array.isArray(v)) return v.length ? v.map(p => p.name || p).join(', ') : '—';
     return String(v);
   }
@@ -225,6 +230,17 @@ const CATALOG = (function() {
           </div>
         `;
       }
+      if (f.type === 'select' && f.options) {
+        const opts = '<option value="">—</option>' + f.options.map(o => `<option value="${escapeHtml(o)}" ${val === o ? 'selected' : ''}>${escapeHtml(o)}</option>`).join('');
+        return `
+          <div class="catalog-form-field ${tri === 'mixed' ? 'mixed' : ''}">
+            <label for="drawer-${f.key}">${escapeHtml(f.label)}</label>
+            ${tri === 'mixed' ? '<span class="catalog-mixed-chip">Mixed — change to apply to all</span>' : ''}
+            <select id="drawer-${f.key}" data-key="${f.key}">${opts}</select>
+            ${f.helper ? `<span class="helper">${escapeHtml(f.helper)}</span>` : ''}
+          </div>
+        `;
+      }
       return `
         <div class="catalog-form-field ${tri === 'mixed' ? 'mixed' : ''}">
           <label for="drawer-${f.key}">${escapeHtml(f.label)}</label>
@@ -349,7 +365,7 @@ const CATALOG = (function() {
     document.addEventListener('keydown', handleKeydown);
     state.drawerKeydownCleanup = () => document.removeEventListener('keydown', handleKeydown);
 
-    drawer.querySelector('#drawer-save')?.addEventListener('click', () => {
+    drawer.querySelector('#drawer-save')?.addEventListener('click', async () => {
       const inputs = drawer.querySelectorAll('input[data-key], select[data-key]');
       inputs.forEach(inp => {
         const key = inp.dataset.key;
@@ -363,6 +379,15 @@ const CATALOG = (function() {
           if (key === 'display_title') persistDisplayTitle(t.id, val);
         });
       });
+      const selected = getTracksForSelection();
+      if (selected.length > 0 && typeof AUTH !== 'undefined' && AUTH.isSignedIn() && (CONFIG.APPS_SCRIPT_URL || CONFIG.APPS_SCRIPT_PROXY_URL)) {
+        const token = AUTH.getToken();
+        for (const t of selected) {
+          try {
+            await DATA.saveCatalogMetadata(t.id, { duration_sec: t.duration_sec, artwork: t.artwork, song_type: t.song_type }, token);
+          } catch (e) { console.warn('Catalog metadata save failed:', e); }
+        }
+      }
       closeDrawer(container, { navigate });
     });
   }
@@ -432,7 +457,7 @@ const CATALOG = (function() {
     const presetOptions = Object.values(CATALOG_METADATA.COLUMN_PRESETS).map(p =>
       `<option value="${p.id}" ${state.prefs.get('columnPreset') === p.id ? 'selected' : ''}>${escapeHtml(p.label)}</option>`
     ).join('');
-    const columnKeys = ['display_title', 'title', 'primary_artist', 'album', 'disc_number', 'year', 'genre', 'release_date', 'isrc', 'iswc', 'release_status'];
+    const columnKeys = ['display_title', 'title', 'primary_artist', 'album', 'disc_number', 'year', 'genre', 'release_date', 'duration_sec', 'song_type', 'isrc', 'iswc', 'release_status'];
     const columnCheckboxes = (state.prefs.get('advancedMode') ? CATALOG_METADATA.ALL_FIELDS : CATALOG_METADATA.SIMPLE_FIELDS)
       .filter(f => columnKeys.includes(f.key))
       .map(f => `
@@ -465,6 +490,7 @@ const CATALOG = (function() {
           ` : `
             <button type="button" class="catalog-toolbar-btn" id="catalog-get-info" disabled><span class="material-icons" style="font-size:1rem;vertical-align:middle;">edit</span> Get Info</button>
           `}
+          <button type="button" class="catalog-toolbar-btn" id="catalog-import-bandcamp" title="Import duration & artwork from Bandcamp CSV">Import Bandcamp</button>
         </div>
       </div>
       ${authBanner}
@@ -564,6 +590,32 @@ const CATALOG = (function() {
         state.prefs.setColumns(cols);
         render(container, { navigate });
       });
+    });
+
+    container.querySelector('#catalog-import-bandcamp')?.addEventListener('click', async () => {
+      if (typeof AUTH === 'undefined' || !AUTH.isSignedIn()) { alert('Sign in with Google to import.'); return; }
+      if (!CONFIG.APPS_SCRIPT_URL && !CONFIG.APPS_SCRIPT_PROXY_URL) { alert('Save is not configured.'); return; }
+      const csv = prompt('Paste Bandcamp CSV (id, title, duration_sec, artwork, bandcamp_url, release_date):');
+      if (!csv || !csv.trim()) return;
+      const lines = csv.trim().split(/\r?\n/);
+      const headers = lines[0].split(',').map(h => h.replace(/^"|"$/g, '').trim());
+      const rows = [];
+      for (let i = 1; i < lines.length; i++) {
+        const vals = lines[i].match(/("([^"]|"")*"|[^,]*)/g) || [];
+        const row = {};
+        headers.forEach((h, j) => { row[h] = (vals[j] || '').replace(/^"|"$/g, '').replace(/""/g, '"').trim(); });
+        if (row.id) rows.push({ id: parseInt(row.id, 10), duration_sec: row.duration_sec ? parseInt(row.duration_sec, 10) : null, artwork: row.artwork || '' });
+      }
+      if (rows.length === 0) { alert('No valid rows to import.'); return; }
+      const btn = container.querySelector('#catalog-import-bandcamp');
+      if (btn) btn.disabled = true;
+      try {
+        const result = await DATA.importBandcampMetadata(rows, AUTH.getToken());
+        alert(`Imported ${result.updated || 0} rows.`);
+        const songs = await DATA.fetchSongs();
+        state.tracks = songs.map(s => DATA.normalizeTrack(s));
+        render(container, { navigate });
+      } catch (e) { alert(e.message || 'Import failed'); } finally { if (btn) btn.disabled = false; }
     });
 
     container.querySelector('#catalog-get-info')?.addEventListener('click', () => {

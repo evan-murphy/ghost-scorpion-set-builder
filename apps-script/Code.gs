@@ -45,6 +45,10 @@ function doPost(e) {
       result = saveSetlist(body.setlist);
     } else if (action === 'saveCatalogDisplayTitle') {
       result = saveCatalogDisplayTitle(body.songId, body.displayTitle);
+    } else if (action === 'saveCatalogMetadata') {
+      result = saveCatalogMetadata(body.songId, body.metadata);
+    } else if (action === 'importBandcampMetadata') {
+      result = importBandcampMetadata(body.rows);
     } else if (action === 'saveNewSong') {
       result = saveNewSong(body.song);
     } else {
@@ -134,6 +138,60 @@ function saveCatalogDisplayTitle(songId, displayTitle) {
     }
   }
   return { ok: false, error: 'Song not found' };
+}
+
+function saveCatalogMetadata(songId, metadata) {
+  const ss = SpreadsheetApp.openById(CONFIG.SONGS_SHEET_ID);
+  const sheet = ss.getSheetByName(CONFIG.SONGS_SHEET_NAME) || ss.getSheets()[0];
+  const data = sheet.getDataRange().getValues();
+  // Columns: A=0 id, B=1 title, C=2 display_title, D=3 album, E=4 year, F=5 notes, G=6 active, H=7 duration_sec, I=8 artwork, J=9 song_type
+  const durationCol = 8;
+  const artworkCol = 9;
+  const songTypeCol = 10;
+  for (let i = 1; i < data.length; i++) {
+    if (parseInt(data[i][0], 10) === parseInt(songId, 10)) {
+      const row = i + 1;
+      if (metadata.duration_sec != null && metadata.duration_sec !== '') {
+        sheet.getRange(row, durationCol).setValue(parseInt(metadata.duration_sec, 10));
+      }
+      if (metadata.artwork !== undefined) {
+        sheet.getRange(row, artworkCol).setValue(metadata.artwork ? String(metadata.artwork).trim() : '');
+      }
+      if (metadata.song_type !== undefined) {
+        sheet.getRange(row, songTypeCol).setValue(metadata.song_type ? String(metadata.song_type).trim() : '');
+      }
+      return { ok: true };
+    }
+  }
+  return { ok: false, error: 'Song not found' };
+}
+
+function importBandcampMetadata(rows) {
+  if (!rows || !Array.isArray(rows) || rows.length === 0) {
+    return { ok: false, error: 'No rows to import' };
+  }
+  const ss = SpreadsheetApp.openById(CONFIG.SONGS_SHEET_ID);
+  const sheet = ss.getSheetByName(CONFIG.SONGS_SHEET_NAME) || ss.getSheets()[0];
+  const data = sheet.getDataRange().getValues();
+  const durationCol = 8;
+  const artworkCol = 9;
+  let updated = 0;
+  for (const row of rows) {
+    const id = parseInt(row.id != null ? row.id : row[0], 10);
+    const duration_sec = row.duration_sec != null && row.duration_sec !== '' ? parseInt(row.duration_sec, 10) : (row[2] != null && row[2] !== '' ? parseInt(row[2], 10) : null);
+    const artwork = (row.artwork != null ? row.artwork : (row[3] != null ? row[3] : '')) || '';
+    if (isNaN(id)) continue;
+    for (var i = 1; i < data.length; i++) {
+      if (parseInt(data[i][0], 10) === id) {
+        var r = i + 1;
+        if (duration_sec != null && !isNaN(duration_sec)) sheet.getRange(r, durationCol).setValue(duration_sec);
+        if (artwork) sheet.getRange(r, artworkCol).setValue(String(artwork).trim());
+        updated++;
+        break;
+      }
+    }
+  }
+  return { ok: true, updated: updated };
 }
 
 function saveNewSong(song) {

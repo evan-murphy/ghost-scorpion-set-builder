@@ -16,11 +16,13 @@ const CATALOG_METADATA = (function() {
     { key: 'year', label: 'Year', ddex: null, section: 'basic', type: 'number' },
     { key: 'language', label: 'Language', ddex: 'LanguageOfPerformance', section: 'basic' },
     { key: 'explicit', label: 'Explicit', ddex: 'ParentalWarningType', section: 'basic', type: 'boolean' },
-    { key: 'artwork', label: 'Artwork', ddex: 'CoverArt', section: 'artwork', type: 'image' },
+    { key: 'duration_sec', label: 'Duration (sec)', ddex: null, section: 'basic', type: 'number', helper: 'Track length in seconds (from Bandcamp)' },
+    { key: 'artwork', label: 'Artwork', ddex: 'CoverArt', section: 'artwork', helper: 'Album art URL (from Bandcamp)' },
     { key: 'display_title', label: 'Display Title', ddex: null, section: 'basic', helper: 'Set list display (e.g. shortened)' }
   ];
 
   const ADVANCED_FIELDS = [
+    { key: 'song_type', label: 'Song Type', ddex: null, section: 'basic', advanced: true, type: 'select', options: ['rocker', 'ripper', 'new', 'bring_it_down', 'neutral'], helper: 'Energy/vibe for set pacing' },
     { key: 'isrc', label: 'ISRC', ddex: 'ISRC', section: 'ids', advanced: true, helper: 'Recording ID (12 chars)' },
     { key: 'iswc', label: 'ISWC', ddex: 'ISWC', section: 'ids', advanced: true, helper: 'Work ID (composition)' },
     { key: 'upc', label: 'UPC/GTIN', ddex: 'ProprietaryId', section: 'ids', advanced: true, helper: 'Release barcode' },
@@ -41,12 +43,12 @@ const CATALOG_METADATA = (function() {
     simple: {
       id: 'simple',
       label: 'Simple',
-      columns: ['display_title', 'title', 'primary_artist', 'album', 'release_date']
+      columns: ['display_title', 'title', 'primary_artist', 'album', 'duration_sec', 'release_date']
     },
     basic: {
       id: 'basic',
       label: 'Basic',
-      columns: ['display_title', 'title', 'primary_artist', 'album', 'disc_number', 'genre', 'release_date']
+      columns: ['display_title', 'title', 'primary_artist', 'album', 'disc_number', 'duration_sec', 'genre', 'release_date', 'song_type']
     },
     dsp: {
       id: 'dsp',
@@ -56,7 +58,7 @@ const CATALOG_METADATA = (function() {
     full: {
       id: 'full',
       label: 'Full',
-      columns: ['display_title', 'title', 'primary_artist', 'album', 'disc_number', 'isrc', 'iswc', 'genre', 'release_date', 'release_status']
+      columns: ['display_title', 'title', 'primary_artist', 'album', 'disc_number', 'duration_sec', 'isrc', 'iswc', 'genre', 'release_date', 'release_status', 'song_type']
     }
   };
 

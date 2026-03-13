@@ -10,7 +10,7 @@ const CONFIG = {
   SETLISTS_SHEET_ID: '1lrE0Esgo0Lu7-7Bn5j91xhzlcjYEwkSRq_LCzMbwZqE',
   API_KEY: 'AIzaSyDfOX4JsSmKnT8Eo0-Ico8q6bs6I5wPrMo',
   // Sheet tab name if not "Sheet1" (e.g. "songs", "setlists")
-  SONGS_RANGE: 'Sheet1!A2:G',
+  SONGS_RANGE: 'Sheet1!A2:J',
   SETLISTS_RANGE: 'Sheet1!A2:K',
   // Google Sign-In (OAuth 2.0 Web client ID from Cloud Console)
   GOOGLE_CLIENT_ID: '755824588930-6dqh3gi7vc0u628irgn4bparcgdhetb0.apps.googleusercontent.com',

@@ -272,11 +272,17 @@ const BUILDER = (function() {
     const overlay = container.querySelector('#sheet-overlay');
 
     const openSaveSheet = () => {
-      const content = container.querySelector('#save-sheet-content');
-      if (typeof AUTH !== 'undefined' && AUTH.isSignedIn()) {
+      const signedIn = typeof AUTH !== 'undefined' && AUTH.isSignedIn();
+      const canSaveLocally = typeof LOCAL_SETLIST_STORE !== 'undefined';
+      if (signedIn) {
         doSave(state, container, context, navigate, closeSheets);
         return;
       }
+      if (canSaveLocally) {
+        doSave(state, container, context, navigate, closeSheets);
+        return;
+      }
+      const content = container.querySelector('#save-sheet-content');
       content.innerHTML = `
         <p class="clear-save-prompt">Sign in with Google to save</p>
         <div id="google-signin-btn"></div>
@@ -394,10 +400,6 @@ const BUILDER = (function() {
 
     container.querySelector('#save-setlist-btn')?.addEventListener('click', () => {
       haptic();
-      if (!CONFIG.APPS_SCRIPT_URL && !CONFIG.APPS_SCRIPT_PROXY_URL) {
-        alert('Save is not configured.\n\n1. Deploy the Apps Script (apps-script/Code.gs) at script.google.com as a Web app\n2. Deploy the CORS proxy (cloudflare-worker/) and set APPS_SCRIPT_PROXY_URL in config.js');
-        return;
-      }
       syncStateFromDOM(container, state);
       openSaveSheet();
     });

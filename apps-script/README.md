@@ -19,7 +19,26 @@ ALLOWLIST: [
 ]
 ```
 
-## 3. Sheet names
+## 3. Songs sheet columns
+
+The Songs sheet should have columns A–J:
+
+| Col | Header        | Description                          |
+|-----|---------------|--------------------------------------|
+| A   | id            | Numeric ID                           |
+| B   | title         | Canonical title                      |
+| C   | display_title | Set list display (e.g. shortened)   |
+| D   | album         | Album name                           |
+| E   | year          | Release year                         |
+| F   | notes         | Notes                                |
+| G   | active        | TRUE/FALSE                           |
+| H   | duration_sec  | Track length in seconds (Bandcamp)   |
+| I   | artwork       | Album art URL (Bandcamp)             |
+| J   | song_type     | rocker, ripper, new, bring_it_down, neutral |
+
+Add headers for H, I, J if they don’t exist. Run `scripts/bandcamp-extract/extract.js` to populate duration and artwork.
+
+## 4. Sheet names
 
 If your sheet tabs are not named `Sheet1`, update:
 
@@ -28,7 +47,7 @@ SONGS_SHEET_NAME: 'songs',   // or your tab name
 SETLISTS_SHEET_NAME: 'setlists'
 ```
 
-## 4. Deploy as web app
+## 5. Deploy as web app
 
 1. Click **Deploy** → **New deployment**
 2. Type: **Web app**
@@ -40,7 +59,7 @@ SETLISTS_SHEET_NAME: 'setlists'
 
 **Important:** Apps Script does not support CORS from browsers. You must also deploy the CORS proxy (see `cloudflare-worker/README.md`) and set `APPS_SCRIPT_PROXY_URL` in config.
 
-## 5. OAuth client ID (for Sign-in)
+## 6. OAuth client ID (for Sign-in)
 
 The app uses Google Identity Services for sign-in. You need an OAuth 2.0 Client ID:
 
@@ -53,7 +72,7 @@ The app uses Google Identity Services for sign-in. You need an OAuth 2.0 Client 
    - `https://set.horror.surf` (or your production URL)
 6. Copy the **Client ID** and add it to `js/config.js` as `GOOGLE_CLIENT_ID`
 
-## 6. OAuth consent screen
+## 7. OAuth consent screen
 
 If you haven’t already:
 
