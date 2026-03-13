@@ -3,7 +3,13 @@
  */
 
 const ARCHIVE = (function() {
+  let documentClickCleanup = null;
+
   async function render(container, { navigate }) {
+    if (documentClickCleanup) {
+      documentClickCleanup();
+      documentClickCleanup = null;
+    }
     container.innerHTML = '<p>Loading...</p>';
 
     let songs, setlists;
@@ -73,20 +79,21 @@ const ARCHIVE = (function() {
 
     setlists.forEach(sl => {
       const songCount = sl.song_ids.filter(id => songMap[id]).length;
-      const subtitle = [sl.venue, sl.venue && sl.date ? '·' : '', songCount + ' songs'].filter(Boolean).join(' ');
       html += `
-        <div class="setlists-row" data-id="${sl.id}">
+        <div class="setlists-row" data-id="${sl.id}" tabindex="0" role="button">
           <div class="setlists-row-main">
-            <div class="setlists-row-title">${formatShortDate(sl.date)} — ${sl.venue || '—'}</div>
-            <div class="setlists-row-subtitle">${subtitle}</div>
+            <div class="setlists-row-date">${formatShortDate(sl.date)}</div>
+            <div class="setlists-row-venue">${sl.venue || '—'}</div>
+            <div class="setlists-row-meta">${songCount} song${songCount !== 1 ? 's' : ''}</div>
           </div>
-          <div class="setlists-row-actions">
-            <button type="button" class="icon-btn" aria-label="Edit" data-edit="${sl.id}"><span class="material-icons">edit</span></button>
-            <button type="button" class="icon-btn" aria-label="Duplicate" data-dup="${sl.id}"><span class="material-icons">content_copy</span></button>
-            <button type="button" class="icon-btn" aria-label="Delete" data-del="${sl.id}"><span class="material-icons">delete</span></button>
-            <button type="button" class="icon-btn" aria-label="PDF" data-pdf="${sl.id}"><span class="material-icons">picture_as_pdf</span></button>
-            <a href="/${sl.id}" data-route="/${sl.id}" class="icon-btn" aria-label="Start set"><span class="material-icons">play_arrow</span></a>
-            <a href="/${sl.id}" data-route="/${sl.id}" class="setlists-row-chevron"><span class="material-icons">chevron_right</span></a>
+          <span class="setlists-row-chevron" aria-hidden="true"><span class="material-icons">chevron_right</span></span>
+          <button type="button" class="setlists-row-overflow icon-btn" aria-label="More actions" aria-haspopup="true" aria-expanded="false" data-id="${sl.id}"><span class="material-icons">more_horiz</span></button>
+          <div class="setlists-overflow-menu" role="menu" aria-label="Setlist actions">
+            <button type="button" role="menuitem" data-action="open" data-id="${sl.id}"><span class="material-icons">play_arrow</span> Open</button>
+            <button type="button" role="menuitem" data-action="edit" data-id="${sl.id}"><span class="material-icons">edit</span> Edit</button>
+            <button type="button" role="menuitem" data-action="dup" data-id="${sl.id}"><span class="material-icons">content_copy</span> Duplicate</button>
+            <button type="button" role="menuitem" data-action="pdf" data-id="${sl.id}"><span class="material-icons">picture_as_pdf</span> Export PDF</button>
+            <button type="button" role="menuitem" data-action="del" data-id="${sl.id}" class="overflow-menu-item-danger"><span class="material-icons">delete</span> Delete</button>
           </div>
         </div>
       `;
@@ -94,55 +101,78 @@ const ARCHIVE = (function() {
 
     container.innerHTML = html;
 
+    function closeAllOverflowMenus() {
+      container.querySelectorAll('.setlists-overflow-menu.is-open').forEach(m => {
+        m.classList.remove('is-open');
+        m.closest('.setlists-row')?.querySelector('.setlists-row-overflow')?.setAttribute('aria-expanded', 'false');
+      });
+    }
+
     container.addEventListener('click', (e) => {
+      const overflowBtn = e.target.closest('.setlists-row-overflow');
+      const menu = e.target.closest('.setlists-overflow-menu');
+      const menuItem = e.target.closest('.setlists-overflow-menu [role="menuitem"]');
       const row = e.target.closest('.setlists-row');
-      if (!row) return;
 
-      const id = row.dataset.id;
-      const editBtn = e.target.closest('[data-edit]');
-      const dupBtn = e.target.closest('[data-dup]');
-      const delBtn = e.target.closest('[data-del]');
-      const playBtn = e.target.closest('[data-route]');
-      const chevron = e.target.closest('.setlists-row-chevron');
-
-      if (editBtn) {
+      if (overflowBtn) {
         e.preventDefault();
         e.stopPropagation();
-        navigate('/' + id + '/edit');
-        return;
-      }
-      if (dupBtn) {
-        e.preventDefault();
-        e.stopPropagation();
-        navigate('/new?clone=' + id);
-        return;
-      }
-      if (delBtn) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (confirm('Delete this setlist?')) {
-          /* TODO: delete */
+        const r = overflowBtn.closest('.setlists-row');
+        const m = r?.querySelector('.setlists-overflow-menu');
+        const isOpen = m?.classList.contains('is-open');
+        closeAllOverflowMenus();
+        if (m && !isOpen) {
+          m.classList.add('is-open');
+          overflowBtn.setAttribute('aria-expanded', 'true');
         }
         return;
       }
-      const pdfBtn = e.target.closest('[data-pdf]');
-      if (pdfBtn) {
+
+      if (menuItem) {
         e.preventDefault();
         e.stopPropagation();
-        const sl = setlists.find(s => s.id === pdfBtn.dataset.pdf);
-        if (sl && typeof PDF !== 'undefined') {
+        closeAllOverflowMenus();
+        const id = menuItem.dataset.id;
+        const action = menuItem.dataset.action;
+        const sl = setlists.find(s => s.id === id);
+        if (action === 'open') navigate('/' + id);
+        else if (action === 'edit') navigate('/' + id + '/edit');
+        else if (action === 'dup') navigate('/new?clone=' + id);
+        else if (action === 'del') {
+          if (confirm('Delete this setlist?')) {
+            /* TODO: delete */
+          }
+        } else if (action === 'pdf' && sl && typeof PDF !== 'undefined') {
           const setlistWithSongs = { ...sl, songs: sl.song_ids.map(i => songMap[i]).filter(Boolean) };
           PDF.download(setlistWithSongs);
         }
         return;
       }
-      if (playBtn || chevron) {
+
+      if (menu) return;
+
+      if (row) {
         e.preventDefault();
-        e.stopPropagation();
-        navigate('/' + id);
-        return;
+        const openMenu = container.querySelector('.setlists-overflow-menu.is-open');
+        if (openMenu) {
+          closeAllOverflowMenus();
+        } else {
+          navigate('/' + row.dataset.id);
+        }
       }
-      navigate('/' + id);
+    });
+
+    document.addEventListener('click', closeAllOverflowMenus);
+    documentClickCleanup = () => document.removeEventListener('click', closeAllOverflowMenus);
+
+    container.addEventListener('keydown', (e) => {
+      const row = e.target.closest('.setlists-row');
+      if (row && (e.key === 'Enter' || e.key === ' ')) {
+        e.preventDefault();
+        if (!e.target.closest('.setlists-row-overflow, .setlists-overflow-menu')) {
+          navigate('/' + row.dataset.id);
+        }
+      }
     });
   }
 
