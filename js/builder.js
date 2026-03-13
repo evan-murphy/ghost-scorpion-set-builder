@@ -634,11 +634,27 @@ const BUILDER = (function() {
     if (btn) btn.textContent = 'Saving…';
     if (btn) btn.disabled = true;
     try {
+      let resultId = state.id;
+      // Always save to local storage first (works without Sheets/auth)
+      if (typeof LOCAL_SETLIST_STORE !== 'undefined') {
+        const localResult = LOCAL_SETLIST_STORE.save(state);
+        resultId = localResult.id;
+      }
+      // Try Sheets if signed in (optional; local save already succeeded)
       const token = typeof AUTH !== 'undefined' ? AUTH.getToken() : null;
-      const result = await DATA.saveSetlist(state, token);
+      const url = (CONFIG.APPS_SCRIPT_PROXY_URL || CONFIG.APPS_SCRIPT_URL) || '';
+      if (url && token) {
+        try {
+          const sheetsResult = await DATA.saveSetlist(state, token);
+          resultId = sheetsResult.id || resultId;
+        } catch (e) {
+          // Already saved locally; Sheets failed (e.g. CORS) — continue
+        }
+      }
+      if (!resultId) throw new Error('Save requires auth or local storage');
       if (typeof DRAFT_STORE !== 'undefined') DRAFT_STORE.clear(context);
       closeSheets();
-      navigate(result.id ? `/${result.id}` : '/');
+      navigate(resultId ? `/${resultId}` : '/');
     } catch (err) {
       alert(err.message || 'Save failed');
     } finally {
