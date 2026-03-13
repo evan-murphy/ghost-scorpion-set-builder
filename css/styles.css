@@ -239,6 +239,12 @@ body.stage-view .builder-header {
   display: none;
 }
 
+/* Prevent document scroll — only stage-scroll should scroll (keeps Scorpion fixed) */
+html:has(body.stage-view),
+body.stage-view {
+  overflow: hidden;
+}
+
 body.stage-view #app,
 body.stage-view #main-content {
   height: 100dvh;
