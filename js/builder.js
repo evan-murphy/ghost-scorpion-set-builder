@@ -90,9 +90,20 @@ const BUILDER = (function() {
     initClearInteractions(container, state, activeSongs, { navigate }, context);
   }
 
+  function getTotalDurationSec(songIds, songMap) {
+    let total = 0;
+    for (const id of songIds || []) {
+      const s = songMap?.[id];
+      if (s?.duration_sec) total += s.duration_sec;
+    }
+    return total;
+  }
+
   function renderClearUI(container, state, activeSongs, { navigate }) {
     const dateStr = state.date ? new Date(state.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Set list';
     const basePath = CONFIG.BASE_PATH || '';
+    const totalSec = getTotalDurationSec(state.song_ids, state.songMap);
+    const durationStr = totalSec > 0 ? `~${Math.round(totalSec / 60)} min` : '';
 
     const sortedSetlists = state.sortedSetlists || [];
     const currentIdx = state.id ? sortedSetlists.findIndex(s => String(s.id) === String(state.id)) : -1;
@@ -114,6 +125,7 @@ const BUILDER = (function() {
               <button type="button" class="clear-meta-trigger" id="meta-trigger">
                 <span class="clear-meta-date">${dateStr}</span>
                 ${state.venue ? `<span class="clear-meta-venue">${state.venue}</span>` : ''}
+                ${durationStr ? `<span class="clear-meta-duration" title="Approx total duration">${durationStr}</span>` : ''}
               </button>
               <button type="button" class="clear-archive-next" aria-label="Next setlist" ${nextSetlist ? '' : 'disabled'} data-id="${nextSetlist?.id ?? ''}"><span class="material-icons">chevron_right</span></button>
             </div>
@@ -121,6 +133,7 @@ const BUILDER = (function() {
             <button type="button" class="clear-meta-trigger" id="meta-trigger">
               <span class="clear-meta-date">${dateStr}</span>
               ${state.venue ? `<span class="clear-meta-venue">${state.venue}</span>` : ''}
+              ${durationStr ? `<span class="clear-meta-duration" title="Approx total duration">${durationStr}</span>` : ''}
             </button>
             `}
             <span class="clear-draft-badge" title="Edits saved locally">●</span>
@@ -536,7 +549,7 @@ const BUILDER = (function() {
       sort: false,
       onAdd: (evt) => {
         const item = evt.item;
-        const isDivider = item?.dataset?.divider;
+        const isDivider = item && ('divider' in (item.dataset || {}));
         if (isDivider) {
           const after = parseInt(item?.dataset?.after, 10);
           state.divider_positions = state.divider_positions.filter(p => p !== after);
@@ -562,7 +575,7 @@ const BUILDER = (function() {
     let songIndex = 0;
 
     ul.querySelectorAll('.clear-item').forEach(li => {
-      if (li.dataset.divider) {
+      if (li && 'divider' in (li.dataset || {})) {
         if (songIndex > 0) dividerPositions.push(songIndex - 1);
       } else {
         const id = parseInt(li.dataset.id, 10);
