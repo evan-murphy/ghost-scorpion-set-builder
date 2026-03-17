@@ -207,7 +207,8 @@ const DATA = (function() {
   }
 
   function getSetlistById(setlists, id) {
-    return setlists.find(s => s.id === id);
+    const idStr = String(id || '');
+    return setlists.find(s => String(s.id || '') === idStr);
   }
 
   async function handleSaveResponse(res, fallback) {

@@ -6,10 +6,21 @@ const READ_VIEW = (function() {
   async function render(container, id, { navigate }) {
     container.innerHTML = '<p style="text-align:center;color:#999;">Loading...</p>';
 
-    const [songs, setlists] = await Promise.all([
-      DATA.fetchSongs(),
-      DATA.fetchSetlists()
-    ]);
+    let songs, setlists;
+    try {
+      [songs, setlists] = await Promise.all([
+        DATA.fetchSongs(),
+        DATA.fetchSetlists()
+      ]);
+    } catch (err) {
+      container.innerHTML = `
+        <p style="text-align:center;color:var(--accent-red);margin-bottom:0.5rem;">Failed to load: ${String(err.message).replace(/</g, '&lt;')}</p>
+        <p style="text-align:center;font-size:0.9rem;color:var(--text-secondary);">
+          <a href="/" data-route="/" style="color:var(--accent-yellow);">Back to Setlists</a>
+        </p>
+      `;
+      return;
+    }
 
     const setlist = DATA.getSetlistById(setlists, id);
     if (!setlist) {
@@ -73,28 +84,26 @@ const READ_VIEW = (function() {
     const fullscreenBtn = document.getElementById('btn-fullscreen');
     const fullscreenIcon = document.getElementById('btn-fullscreen-icon');
     const fullscreenLabel = document.getElementById('btn-fullscreen-label');
-    const updateFullscreenButton = () => {
-      if (!fullscreenBtn || !document.body.contains(fullscreenBtn)) {
-        document.removeEventListener('fullscreenchange', updateFullscreenButton);
-        return;
-      }
-      const isFullscreen = !!document.fullscreenElement;
-      if (fullscreenIcon) fullscreenIcon.textContent = isFullscreen ? 'fullscreen_exit' : 'fullscreen';
-      if (fullscreenLabel) fullscreenLabel.textContent = isFullscreen ? 'Exit Stage View' : 'Enter Stage View';
-    };
     if (fullscreenBtn) {
+      const fsEl = document.documentElement;
+      const hasFs = () => !!(document.fullscreenElement ?? document.webkitFullscreenElement);
       fullscreenBtn.addEventListener('click', async () => {
         try {
-          if (document.fullscreenElement) {
-            await document.exitFullscreen?.();
+          if (hasFs()) {
+            await (document.exitFullscreen ?? document.webkitExitFullscreen)?.();
           } else {
-            await document.documentElement.requestFullscreen?.();
+            await (fsEl.requestFullscreen ?? fsEl.webkitRequestFullscreen)?.();
             if (typeof PWA !== 'undefined') PWA.enableWakeLock();
           }
         } catch (e) {}
       });
-      document.addEventListener('fullscreenchange', updateFullscreenButton);
-      updateFullscreenButton();
+      const onFsChange = () => {
+        if (fullscreenIcon) fullscreenIcon.textContent = hasFs() ? 'fullscreen_exit' : 'fullscreen';
+        if (fullscreenLabel) fullscreenLabel.textContent = hasFs() ? 'Exit Stage View' : 'Enter Stage View';
+      };
+      document.addEventListener('fullscreenchange', onFsChange);
+      document.addEventListener('webkitfullscreenchange', onFsChange);
+      onFsChange();
     }
 
     const moreBtn = document.getElementById('btn-more');
