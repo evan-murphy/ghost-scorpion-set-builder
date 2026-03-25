@@ -313,8 +313,10 @@ const BUILDER = (function() {
       updateSongPickerList(container.querySelector('#song-picker-list'), state, activeSongs);
       const randomBtn = container.querySelector('#random-songs-trigger');
       if (randomBtn) {
-        const isEmpty = state.song_ids.length === 0;
-        if (isEmpty) {
+        const used = new Set(state.song_ids);
+        const canRandomFill =
+          state.song_ids.length < 13 && activeSongs.some(s => !used.has(s.id));
+        if (canRandomFill) {
           randomBtn.removeAttribute('hidden');
         } else {
           if (document.activeElement === randomBtn) {
@@ -346,9 +348,16 @@ const BUILDER = (function() {
     container.querySelector('#random-songs-trigger')?.addEventListener('click', (e) => {
       e.stopPropagation();
       haptic();
-      if (state.song_ids.length > 0) return;
-      const shuffled = [...activeSongs].sort(() => Math.random() - 0.5);
-      state.song_ids = shuffled.slice(0, 13).map(s => s.id);
+      const TARGET = 13;
+      const needed = TARGET - state.song_ids.length;
+      if (needed <= 0) return;
+      const used = new Set(state.song_ids);
+      const pool = activeSongs.filter(s => !used.has(s.id));
+      for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+      state.song_ids = state.song_ids.concat(pool.slice(0, needed).map(s => s.id));
       refresh();
     });
 
