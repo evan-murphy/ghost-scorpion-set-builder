@@ -287,13 +287,15 @@
   padding: 0 0.75rem;
 }
 
+/* Three columns: drag | title (true horizontal center) | empty balance */
 .clear-item {
-  display: flex;
+  --clear-drag-track: minmax(44px, 2.5rem);
+  display: grid;
+  grid-template-columns: var(--clear-drag-track) 1fr var(--clear-drag-track);
   align-items: stretch;
-  justify-content: flex-start;
-  gap: 0.15rem;
+  column-gap: 0;
   min-height: 44px;
-  padding: 0 0.4rem 0 0.15rem;
+  padding: 0 0.15rem;
   margin-bottom: 1px;
   background: var(--clear-surface);
   border-radius: 10px;
@@ -308,13 +310,13 @@
 }
 
 .clear-item-drag {
-  flex-shrink: 0;
-  align-self: stretch;
+  grid-column: 1;
+  place-self: stretch center;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.5rem;
-  min-width: 44px;
+  width: 100%;
+  max-width: 2.5rem;
   margin: 0;
   padding: 0;
   border: none;
@@ -352,9 +354,9 @@
 }
 
 .clear-item-text {
-  flex: 1;
+  grid-column: 2;
   min-width: 0;
-  align-self: center;
+  place-self: center stretch;
   padding: 0.5rem 0.35rem;
   text-align: center;
   touch-action: pan-y;
