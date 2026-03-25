@@ -289,10 +289,11 @@
 
 .clear-item {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 0.15rem;
   min-height: 44px;
-  padding: 0 0.75rem;
+  padding: 0 0.4rem 0 0.15rem;
   margin-bottom: 1px;
   background: var(--clear-surface);
   border-radius: 10px;
@@ -306,6 +307,41 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+.clear-item-drag {
+  flex-shrink: 0;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  min-width: 44px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--clear-muted);
+  cursor: grab;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.clear-item-drag .material-icons {
+  font-size: 1.35rem;
+  opacity: 0.75;
+}
+
+.clear-item-drag:active {
+  cursor: grabbing;
+}
+
+.clear-item-drag:focus {
+  outline: none;
+}
+
+.clear-item-drag:focus-visible {
+  outline: 2px solid var(--clear-accent);
+  outline-offset: 2px;
+}
+
 .clear-item:active {
   background: rgba(255, 255, 255, 0.06);
 }
@@ -317,13 +353,30 @@
 
 .clear-item-text {
   flex: 1;
-  cursor: grab;
-  padding: 0.5rem 0;
+  min-width: 0;
+  align-self: center;
+  padding: 0.5rem 0.35rem;
   text-align: center;
+  touch-action: pan-y;
 }
 
-.clear-item-text:active {
-  cursor: grabbing;
+@media (max-width: 600px) {
+  .clear-list {
+    padding-left: max(0.35rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.35rem, env(safe-area-inset-right, 0px));
+  }
+  /* Narrower rows leave side strips for scrolling */
+  .clear-item {
+    margin-inline: auto;
+    width: calc(100% - 1.25rem);
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  .clear-item-text {
+    padding-left: 0.2rem;
+    padding-right: 0.2rem;
+    font-size: 1.15rem;
+  }
 }
 
 .clear-divider .clear-item-text {
@@ -344,28 +397,6 @@
   justify-content: center;
   font-size: 0.8rem;
   font-family: system-ui, sans-serif;
-}
-
-/* One-time tip for first-time users */
-.clear-break-hint.hidden {
-  display: none !important;
-}
-.clear-break-hint {
-  padding: 0.5rem 0.75rem;
-  font-size: 0.85rem;
-  color: var(--clear-muted);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  cursor: pointer;
-  font-family: system-ui, sans-serif;
-  -webkit-tap-highlight-color: transparent;
-  transition: opacity 0.2s ease;
-}
-
-.clear-break-hint:hover,
-.clear-break-hint:active {
-  opacity: 0.8;
 }
 
 /* Bottom zone: add row + trash (same spot, contextual) */
@@ -589,6 +620,27 @@
 
 .clear-sheet-item:last-child {
   border-bottom: none;
+}
+
+.clear-sheet-item--tuning-break {
+  font-family: system-ui, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--clear-muted);
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.clear-sheet-item--tuning-break .clear-sheet-item-break-dash {
+  color: var(--clear-accent);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.15rem;
+  margin-left: 0.25rem;
+}
+
+.clear-sheet-item--tuning-break:hover,
+.clear-sheet-item--tuning-break:active {
+  color: var(--clear-text);
 }
 
 /* Meta form in sheet */

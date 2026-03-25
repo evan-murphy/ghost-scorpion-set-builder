@@ -4,24 +4,9 @@
  */
 
 const BUILDER = (function() {
-  const BREAK_HINT_STORAGE_KEY = 'btdoags-break-hint-dismissed';
   let sortable = null;
   let trashSortable = null;
   let saveDraftTimer = null;
-
-  function wasBreakHintDismissed() {
-    try {
-      return localStorage.getItem(BREAK_HINT_STORAGE_KEY) === '1';
-    } catch (e) {
-      return false;
-    }
-  }
-
-  function dismissBreakHint() {
-    try {
-      localStorage.setItem(BREAK_HINT_STORAGE_KEY, '1');
-    } catch (e) {}
-  }
 
   async function render(container, id, { navigate }) {
     container.innerHTML = '<p>Loading...</p>';
@@ -147,7 +132,6 @@ const BUILDER = (function() {
         <main class="clear-list-surface">
           <ul class="clear-list" id="setlist-items">${listHtml}</ul>
           <div class="clear-bottom-zone">
-            <button type="button" class="clear-break-hint hidden" id="break-hint" aria-label="Dismiss tip" title="Long-press a song to add a break">Tip: Long-press a song to add a break</button>
             <button type="button" class="clear-random-row" id="random-songs-trigger" title="Fill with 13 random songs" ${state.song_ids.length === 0 ? '' : 'hidden'}>
               <span class="clear-random-icon">🦇</span>
               <span>Random</span>
@@ -197,13 +181,17 @@ const BUILDER = (function() {
       }
     });
 
+    const dragBtn = '<button type="button" class="clear-item-drag" aria-label="Drag to reorder" tabindex="-1"><span class="material-icons" aria-hidden="true">drag_indicator</span></button>';
+
     return items.map((item) => {
       if (item.divider) {
         return `<li class="clear-item clear-divider" data-divider data-after="${item.index}">
+          ${dragBtn}
           <span class="clear-item-text">—</span>
         </li>`;
       }
       return `<li class="clear-item" data-id="${item.id}" data-index="${item.index}">
+        ${dragBtn}
         <span class="clear-item-text">${item.display_title}</span>
       </li>`;
     }).join('');
@@ -252,14 +240,24 @@ const BUILDER = (function() {
   function updateSongPickerList(ul, state, activeSongs) {
     if (!ul) return;
     const addedIds = new Set(state.song_ids);
-    const search = (ul.closest('.clear-sheet')?.querySelector('#song-search')?.value || '').toLowerCase();
+    const searchRaw = ul.closest('.clear-sheet')?.querySelector('#song-search')?.value || '';
+    const search = searchRaw.toLowerCase().trim();
     const filtered = activeSongs.filter(s =>
       !addedIds.has(s.id) &&
       (s.display_title.toLowerCase().includes(search) || s.title.toLowerCase().includes(search))
     );
-    ul.innerHTML = filtered.slice(0, 60).map(s =>
+    const lastIdx = state.song_ids.length - 1;
+    const showTuningBreak =
+      lastIdx >= 0 &&
+      !search &&
+      !state.divider_positions.includes(lastIdx);
+    const tuningRow = showTuningBreak
+      ? `<li class="clear-sheet-item clear-sheet-item--tuning-break" data-action="tuning-break" role="button" tabindex="0">Tuning break <span class="clear-sheet-item-break-dash">—</span></li>`
+      : '';
+    const songRows = filtered.slice(0, 60).map(s =>
       `<li class="clear-sheet-item" data-id="${s.id}">${s.title}</li>`
     ).join('');
+    ul.innerHTML = tuningRow + songRows;
   }
 
   function initClearInteractions(container, state, activeSongs, { navigate }, context) {
@@ -310,14 +308,6 @@ const BUILDER = (function() {
       }) : null;
     };
 
-    const updateBreakHint = () => {
-      const breakHint = container.querySelector('#break-hint');
-      if (breakHint) {
-        const show = state.song_ids.length > 0 && !wasBreakHintDismissed();
-        breakHint.classList.toggle('hidden', !show);
-      }
-    };
-
     const refresh = () => {
       list.innerHTML = buildListHTML(state);
       updateSongPickerList(container.querySelector('#song-picker-list'), state, activeSongs);
@@ -338,9 +328,7 @@ const BUILDER = (function() {
         const hasItems = state.song_ids.length > 0 || (state.divider_positions?.length ?? 0) > 0;
         clearBtn.disabled = !hasItems;
       }
-      updateBreakHint();
       initSortable(container, state, refresh, context);
-      initLongPress(container, state, refresh);
       scheduleDraftSave(state, context);
     };
 
@@ -354,11 +342,6 @@ const BUILDER = (function() {
       overlay?.classList.remove('open');
       document.body.style.overflow = '';
     };
-
-    container.querySelector('#break-hint')?.addEventListener('click', () => {
-      dismissBreakHint();
-      container.querySelector('#break-hint')?.classList.add('hidden');
-    });
 
     container.querySelector('#random-songs-trigger')?.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -427,7 +410,18 @@ const BUILDER = (function() {
       if (id) goToSetlist(id);
     });
 
-    container.querySelector('#song-picker-list')?.addEventListener('click', (e) => {
+    const onSongPickerActivate = (e) => {
+      const tuningLi = e.target.closest('.clear-sheet-item[data-action="tuning-break"]');
+      if (tuningLi) {
+        e.stopPropagation();
+        const insertAfter = state.song_ids.length - 1;
+        if (insertAfter < 0 || state.divider_positions.includes(insertAfter)) return;
+        state.divider_positions.push(insertAfter);
+        state.divider_positions.sort((a, b) => a - b);
+        haptic();
+        refresh();
+        return true;
+      }
       const li = e.target.closest('.clear-sheet-item[data-id]');
       if (li) {
         e.stopPropagation();
@@ -436,7 +430,19 @@ const BUILDER = (function() {
         state.song_ids.push(id);
         closeSheets();
         refresh();
+        return true;
       }
+      return false;
+    };
+
+    container.querySelector('#song-picker-list')?.addEventListener('click', onSongPickerActivate);
+
+    container.querySelector('#song-picker-list')?.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const item = e.target.closest('.clear-sheet-item[data-action="tuning-break"], .clear-sheet-item[data-id]');
+      if (!item) return;
+      e.preventDefault();
+      onSongPickerActivate(e);
     });
 
     const scheduleDraftSave = (s, ctx) => {
@@ -499,8 +505,6 @@ const BUILDER = (function() {
     });
 
     initSortable(container, state, refresh, context);
-    initLongPress(container, state, refresh);
-    updateBreakHint();
   }
 
   function initSortable(container, state, refresh, context) {
@@ -524,7 +528,7 @@ const BUILDER = (function() {
 
     sortable = Sortable.create(ul, {
       animation: 200,
-      handle: '.clear-item-text',
+      handle: '.clear-item-drag',
       ghostClass: 'clear-item-ghost',
       group: { name: 'setlist', pull: true, put: true },
       onStart: () => {
@@ -592,38 +596,6 @@ const BUILDER = (function() {
     state.divider_positions = [...new Set(dividerPositions)].sort((a, b) => a - b);
   }
 
-  function initLongPress(container, state, refresh) {
-    const items = container?.querySelectorAll('.clear-item:not(.clear-divider)');
-    if (!items) return;
-
-    const addBreak = (li) => {
-      const idx = parseInt(li.dataset.index, 10);
-      const insertAfter = idx; // break appears below this song (between it and the next)
-      if (!state.divider_positions.includes(insertAfter)) {
-        state.divider_positions.push(insertAfter);
-        state.divider_positions.sort((a, b) => a - b);
-        haptic();
-        refresh();
-      }
-    };
-
-    items.forEach(li => {
-      let timer;
-      li.addEventListener('touchstart', () => {
-        timer = setTimeout(() => { addBreak(li); timer = null; }, 500);
-      }, { passive: true });
-      li.addEventListener('touchend', () => clearTimeout(timer));
-      li.addEventListener('touchcancel', () => clearTimeout(timer));
-
-      li.addEventListener('mousedown', (e) => {
-        if (e.button !== 0) return;
-        timer = setTimeout(() => { addBreak(li); timer = null; }, 500);
-      });
-      li.addEventListener('mouseup', () => clearTimeout(timer));
-      li.addEventListener('mouseleave', () => clearTimeout(timer));
-    });
-  }
-
   function haptic() {
     if (navigator.vibrate) navigator.vibrate(10);
   }
@@ -648,7 +620,8 @@ const BUILDER = (function() {
           const sheetsResult = await DATA.saveSetlist(state, token);
           resultId = sheetsResult.id || resultId;
         } catch (e) {
-          // Already saved locally; Sheets failed (e.g. CORS) — continue
+          // Already saved locally; Sheets failed — continue (see console when debugging)
+          console.warn('Setlist saved locally; Google Sheets sync failed:', e?.message || e);
         }
       }
       if (!resultId) throw new Error('Save requires auth or local storage');
