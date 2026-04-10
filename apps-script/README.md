@@ -79,3 +79,17 @@ If you haven’t already:
 1. **APIs & Services** → **OAuth consent screen**
 2. User type: **External** (or Internal for workspace)
 3. Add the required app info and save
+
+## 8. Setlists: one source of truth (Google Sheet)
+
+The live app reads setlists **only** from the Google Sheet (when `USE_MOCK` is false in `js/config.js`). Git holds `sheets-import/setlists.csv` as the versioned copy you merge in PRs; it is **not** pushed to the Sheet automatically when you push to GitHub.
+
+**After you add or change rows in `sheets-import/setlists.csv` and merge to `main`:**
+
+1. Copy the latest `Code.gs` from this repo into your Apps Script project (or redeploy from your usual workflow) so `syncSetlistsFromRepoCsv` exists.
+2. In the Apps Script editor, choose **`syncSetlistsFromRepoCsv`** in the function dropdown and click **Run** (authorize if prompted).
+3. The script fetches the CSV from GitHub `raw` and **appends** any `id` that is not already on the setlists tab. Existing rows are never overwritten.
+
+Forks: Project settings → Script properties → add `SETLISTS_CSV_URL` = your raw `setlists.csv` URL.
+
+**Alternative:** In Google Sheets, **File → Import** the CSV row into the setlists tab (same columns as above).

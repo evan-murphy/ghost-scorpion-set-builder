@@ -9,6 +9,8 @@ const CONFIG = {
   SETLISTS_SHEET_ID: '1lrE0Esgo0Lu7-7Bn5j91xhzlcjYEwkSRq_LCzMbwZqE',
   SONGS_SHEET_NAME: 'Sheet1',
   SETLISTS_SHEET_NAME: 'Sheet1',
+  /** Raw CSV on default branch — source of truth in git; run syncSetlistsFromRepoCsv() to append missing rows to the Sheet. */
+  REPO_SETLISTS_CSV_URL: 'https://raw.githubusercontent.com/evan-murphy/ghost-scorpion-set-builder/main/sheets-import/setlists.csv',
   ALLOWLIST: [
     'murphy.evan@gmail.com',
     'btdoags@gmail.com',
@@ -85,17 +87,12 @@ function isAllowed(email) {
   return list.indexOf((email || '').toLowerCase()) !== -1;
 }
 
-function saveSetlist(setlist) {
-  const ss = SpreadsheetApp.openById(CONFIG.SETLISTS_SHEET_ID);
-  const sheet = ss.getSheetByName(CONFIG.SETLISTS_SHEET_NAME) || ss.getSheets()[0];
-  const data = sheet.getDataRange().getValues();
-  const headers = data[0] || [];
-  const idCol = 0, dateCol = 1, venueCol = 2, modeCol = 3, songIdsCol = 4;
-  const divCol = 5, showDateCol = 6, showVenueCol = 7, logoCol = 8, notesCol = 9, createdCol = 10;
-  const now = new Date().toISOString();
-  const songIdsStr = (setlist.song_ids || []).join('|');
-  const divStr = (setlist.divider_positions || []).join(',');
-  const row = [
+function buildSetlistRowFromObject(setlist, createdIso) {
+  var ids = setlist.song_ids || [];
+  var songIdsStr = Array.isArray(ids) ? ids.join('|') : String(ids || '');
+  var divs = setlist.divider_positions || [];
+  var divStr = Array.isArray(divs) ? divs.join(',') : String(divs || '');
+  return [
     setlist.id || ('sl' + Date.now()),
     setlist.date || '',
     setlist.venue || '',
@@ -106,8 +103,78 @@ function saveSetlist(setlist) {
     setlist.show_venue === true ? 'TRUE' : 'FALSE',
     setlist.logo_variant || 'black',
     setlist.notes || '',
-    now
+    createdIso || new Date().toISOString()
   ];
+}
+
+/**
+ * Run once from the Apps Script editor (Select function → Run).
+ * Fetches sheets-import/setlists.csv from GitHub main and appends any id that is not already on the setlists tab.
+ * Does not overwrite existing rows (the Sheet stays canonical for ids already present).
+ * Forks: set script property SETLISTS_CSV_URL to your raw CSV URL.
+ */
+function syncSetlistsFromRepoCsv() {
+  var propUrl = PropertiesService.getScriptProperties().getProperty('SETLISTS_CSV_URL');
+  var url = propUrl || CONFIG.REPO_SETLISTS_CSV_URL;
+  var res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+  if (res.getResponseCode() !== 200) {
+    throw new Error('syncSetlistsFromRepoCsv: HTTP ' + res.getResponseCode() + ' fetching ' + url);
+  }
+  var table = Utilities.parseCsv(res.getContentText());
+  if (!table || table.length < 2) {
+    throw new Error('syncSetlistsFromRepoCsv: CSV has no data rows');
+  }
+  var ss = SpreadsheetApp.openById(CONFIG.SETLISTS_SHEET_ID);
+  var sheet = ss.getSheetByName(CONFIG.SETLISTS_SHEET_NAME) || ss.getSheets()[0];
+  var data = sheet.getDataRange().getValues();
+  var existing = {};
+  for (var i = 1; i < data.length; i++) {
+    var cell = data[i][0];
+    if (cell !== '' && cell != null) {
+      existing[String(cell).trim()] = true;
+    }
+  }
+  var now = new Date().toISOString();
+  var added = 0;
+  for (var r = 1; r < table.length; r++) {
+    var row = table[r];
+    var id = String(row[0] || '').trim();
+    if (!id || String(id).toLowerCase() === 'id') {
+      continue;
+    }
+    if (existing[id]) {
+      continue;
+    }
+    while (row.length < 11) {
+      row.push('');
+    }
+    var out = [
+      row[0],
+      row[1],
+      row[2],
+      row[3],
+      row[4],
+      row[5] != null ? String(row[5]) : '',
+      row[6] != null && String(row[6]) !== '' ? String(row[6]) : 'TRUE',
+      row[7] != null && String(row[7]) !== '' ? String(row[7]) : 'FALSE',
+      row[8] != null && String(row[8]) !== '' ? String(row[8]) : 'black',
+      row[9] != null ? String(row[9]) : '',
+      row[10] != null && String(row[10]) !== '' ? String(row[10]) : now
+    ];
+    sheet.appendRow(out);
+    existing[id] = true;
+    added++;
+  }
+  return { ok: true, added: added };
+}
+
+function saveSetlist(setlist) {
+  const ss = SpreadsheetApp.openById(CONFIG.SETLISTS_SHEET_ID);
+  const sheet = ss.getSheetByName(CONFIG.SETLISTS_SHEET_NAME) || ss.getSheets()[0];
+  const data = sheet.getDataRange().getValues();
+  const idCol = 0;
+  const now = new Date().toISOString();
+  const row = buildSetlistRowFromObject(setlist, now);
   const existingId = setlist.id;
   let rowIndex = -1;
   for (let i = 1; i < data.length; i++) {

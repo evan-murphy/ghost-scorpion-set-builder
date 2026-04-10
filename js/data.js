@@ -69,8 +69,7 @@ const DATA = (function() {
   const MOCK_SETLISTS = [
     { id: "sl1", date: "2025-05-17", venue: "Cantab Lounge Cambridge, MA", mode: "short", song_ids: [1, 2, 34, 4, 5, 36, 38, 52, 41, 43], divider_positions: [4], show_date: true, show_venue: false, logo_variant: "black", notes: "", created_at: "2025-05-17T20:00:00Z" },
     { id: "sl2", date: "2025-08-15", venue: "VC Tour", mode: "medium", song_ids: [21, 22, 44, 47, 55, 31, 32, 59], divider_positions: [3, 6], show_date: true, show_venue: true, logo_variant: "black", notes: "", created_at: "2025-08-01T12:00:00Z" },
-    { id: "sl3", date: "2024-09-12", venue: "Asheville", mode: "long", song_ids: [8, 7, 44, 47, 55, 31, 32, 59, 50, 57], divider_positions: [2, 5, 8], show_date: true, show_venue: true, logo_variant: "white", notes: "Mini tour", created_at: "2024-09-01T10:00:00Z" },
-    { id: "sl4", date: "2026-04-10", venue: "Chugalug House, Richmond, VA", mode: "medium", song_ids: [31, 2, 1, 7, 36, 34, 4, 5, 41, 11, 55, 43, 3], divider_positions: [], show_date: true, show_venue: true, logo_variant: "black", notes: "", created_at: "2026-04-10T12:00:00Z" }
+    { id: "sl3", date: "2024-09-12", venue: "Asheville", mode: "long", song_ids: [8, 7, 44, 47, 55, 31, 32, 59, 50, 57], divider_positions: [2, 5, 8], show_date: true, show_venue: true, logo_variant: "white", notes: "Mini tour", created_at: "2024-09-01T10:00:00Z" }
   ];
 
   function getBasePath() {
@@ -132,20 +131,6 @@ const DATA = (function() {
     return Array.from(byId.values());
   }
 
-  /** Add repo-shipped setlists whose ids are not on Google Sheets (sheet stays canonical when id exists). */
-  function mergeBundledSetlistsMissingFromRemote(remoteSetlists, bundled) {
-    const seen = new Set(remoteSetlists.map(s => String(s.id)));
-    const out = [...remoteSetlists];
-    for (const b of bundled) {
-      const id = String(b.id);
-      if (!seen.has(id)) {
-        out.push(b);
-        seen.add(id);
-      }
-    }
-    return out;
-  }
-
   async function fetchSetlists() {
     let remote;
     if (useMock()) {
@@ -175,7 +160,6 @@ const DATA = (function() {
         notes: row[9] || '',
         created_at: row[10] || ''
       }));
-      remote = mergeBundledSetlistsMissingFromRemote(remote, MOCK_SETLISTS);
     }
     return mergeWithLocalSetlists(remote);
   }
