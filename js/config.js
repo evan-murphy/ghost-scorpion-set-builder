@@ -1,12 +1,11 @@
 /**
  * BTDOAGS Set List — Configuration
  *
- * For read-only with mock data: USE_MOCK = true (default)
- * For real Google Sheets: set USE_MOCK = false and add IDs + API_KEY
- * Setlists always load from Google Sheets when USE_MOCK is false (see sheets-import/setlists.csv + Apps Script sync).
+ * Production: USE_MOCK = false (loads songs + setlists from Google Sheets).
+ * Local / offline: append ?mock=1 to the URL for bundled sample data (no API calls).
  */
 const CONFIG = {
-  USE_MOCK: true,
+  USE_MOCK: false,
   SONGS_SHEET_ID: '1qEl-eCzp5cy_5tWqsS4FgCYEM0BGR8JRC8lv3MzeyZU',
   SETLISTS_SHEET_ID: '1lrE0Esgo0Lu7-7Bn5j91xhzlcjYEwkSRq_LCzMbwZqE',
   API_KEY: 'AIzaSyDfOX4JsSmKnT8Eo0-Ico8q6bs6I5wPrMo',

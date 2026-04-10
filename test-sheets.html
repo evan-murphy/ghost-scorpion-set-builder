@@ -67,7 +67,7 @@
       const allOk = results.every(r => r.startsWith('SONGS: OK') || r.startsWith('SETLISTS: OK'));
       out.innerHTML = `<div class="result ${allOk ? 'ok' : 'err'}">${results.join('\n\n')}</div>`;
       if (allOk) {
-        out.innerHTML += '<p style="color: green;">✓ Sheets API is working. Set USE_MOCK: false in config.js and push.</p>';
+        out.innerHTML += '<p style="color: green;">✓ Sheets API is working. config.js should have USE_MOCK: false for production (default in repo).</p>';
       } else {
         out.innerHTML += '<p style="color: #991b1b;">Fix the errors above, then re-run this test.</p>';
       }
