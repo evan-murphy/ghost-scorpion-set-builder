@@ -3,6 +3,7 @@
  *
  * For read-only with mock data: USE_MOCK = true (default)
  * For real Google Sheets: set USE_MOCK = false and add IDs + API_KEY
+ * (Setlists on the sheet win by id; any id only in js/data.js MOCK_SETLISTS is appended after fetch.)
  */
 const CONFIG = {
   USE_MOCK: true,

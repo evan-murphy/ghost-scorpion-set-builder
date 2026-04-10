@@ -132,6 +132,20 @@ const DATA = (function() {
     return Array.from(byId.values());
   }
 
+  /** Add repo-shipped setlists whose ids are not on Google Sheets (sheet stays canonical when id exists). */
+  function mergeBundledSetlistsMissingFromRemote(remoteSetlists, bundled) {
+    const seen = new Set(remoteSetlists.map(s => String(s.id)));
+    const out = [...remoteSetlists];
+    for (const b of bundled) {
+      const id = String(b.id);
+      if (!seen.has(id)) {
+        out.push(b);
+        seen.add(id);
+      }
+    }
+    return out;
+  }
+
   async function fetchSetlists() {
     let remote;
     if (useMock()) {
@@ -161,6 +175,7 @@ const DATA = (function() {
         notes: row[9] || '',
         created_at: row[10] || ''
       }));
+      remote = mergeBundledSetlistsMissingFromRemote(remote, MOCK_SETLISTS);
     }
     return mergeWithLocalSetlists(remote);
   }
