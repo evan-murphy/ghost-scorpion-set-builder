@@ -72,6 +72,24 @@ const DATA = (function() {
     { id: "sl3", date: "2024-09-12", venue: "Asheville", mode: "long", song_ids: [8, 7, 44, 47, 55, 31, 32, 59, 50, 57], divider_positions: [2, 5, 8], show_date: true, show_venue: true, logo_variant: "white", notes: "Mini tour", created_at: "2024-09-01T10:00:00Z" }
   ];
 
+  /** Shipped setlists merged in if the Sheet/API response has no row with the same id (sheet row wins when id matches). */
+  const SHIPPED_SETLISTS = [
+    { id: 'sl4', date: '2026-04-10', venue: 'Chugalug House, Richmond, VA', mode: 'medium', song_ids: [31, 2, 1, 7, 36, 34, 4, 5, 41, 11, 55, 43, 3], divider_positions: [], show_date: true, show_venue: true, logo_variant: 'black', notes: '', created_at: '2026-04-10T12:00:00Z' }
+  ];
+
+  function mergeShippedSetlistsMissingFromRemote(remoteSetlists) {
+    const seen = new Set(remoteSetlists.map(s => String(s.id)));
+    const out = [...remoteSetlists];
+    for (const s of SHIPPED_SETLISTS) {
+      const id = String(s.id);
+      if (!seen.has(id)) {
+        out.push(s);
+        seen.add(id);
+      }
+    }
+    return out;
+  }
+
   function getBasePath() {
     return CONFIG.BASE_PATH || '';
   }
@@ -161,6 +179,7 @@ const DATA = (function() {
         created_at: row[10] || ''
       }));
     }
+    remote = mergeShippedSetlistsMissingFromRemote(remote);
     return mergeWithLocalSetlists(remote);
   }
 
