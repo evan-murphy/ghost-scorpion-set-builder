@@ -98,6 +98,10 @@ const DATA = (function() {
     return CONFIG.USE_MOCK || (typeof window !== 'undefined' && window.location.search.includes('mock=1'));
   }
 
+  function useDebug() {
+    return typeof window !== 'undefined' && window.location.search.includes('debug=1');
+  }
+
   function fetchWithTimeout(url, ms) {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), ms);
@@ -151,6 +155,7 @@ const DATA = (function() {
 
   async function fetchSetlists() {
     let remote;
+    let sheetRowCount = null;
     if (useMock()) {
       remote = MOCK_SETLISTS;
     } else {
@@ -165,6 +170,7 @@ const DATA = (function() {
         throw new Error(`Setlists: ${msg}`);
       }
       const rows = json.values || [];
+      sheetRowCount = rows.length;
       remote = rows.map(row => ({
         id: row[0],
         date: row[1],
@@ -179,8 +185,31 @@ const DATA = (function() {
         created_at: row[10] || ''
       }));
     }
+    const afterSheetIds = remote.map(s => s.id);
     remote = mergeShippedSetlistsMissingFromRemote(remote);
-    return mergeWithLocalSetlists(remote);
+    const afterShippedIds = remote.map(s => s.id);
+    const final = mergeWithLocalSetlists(remote);
+    if (useDebug()) {
+      let localIds = [];
+      try {
+        if (typeof LOCAL_SETLIST_STORE !== 'undefined') {
+          localIds = LOCAL_SETLIST_STORE.getAll().map(s => s.id);
+        }
+      } catch (e) {
+        localIds = ['(error reading localStorage)'];
+      }
+      console.log('[BTDOAGS debug] setlists', {
+        useMock: useMock(),
+        CONFIG_USE_MOCK: typeof CONFIG !== 'undefined' ? CONFIG.USE_MOCK : '(no CONFIG)',
+        sheetDataRowsFromApi: sheetRowCount,
+        idsFromSheetOrMock: afterSheetIds,
+        idsAfterShippedMerge: afterShippedIds,
+        idsAfterLocalStorageMerge: final.map(s => s.id),
+        localStorageSetlistIds: localIds,
+        hasSl4: final.some(s => String(s.id) === 'sl4')
+      });
+    }
+    return final;
   }
 
   function getSongById(songs, id) {
