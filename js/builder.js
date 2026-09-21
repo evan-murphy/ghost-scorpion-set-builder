@@ -621,10 +621,11 @@ const BUILDER = (function() {
         const localResult = LOCAL_SETLIST_STORE.save(state);
         resultId = localResult.id;
       }
-      // Try Sheets if signed in (optional; local save already succeeded)
+      // Sheets sync only for Editors on ACCESS_SHEET_ID
+      const canEdit = typeof ACCESS === 'undefined' || ACCESS.canEdit();
       const token = typeof AUTH !== 'undefined' ? AUTH.getToken() : null;
       const url = (CONFIG.APPS_SCRIPT_PROXY_URL || CONFIG.APPS_SCRIPT_URL) || '';
-      if (url && token) {
+      if (canEdit && url && token) {
         try {
           const sheetsResult = await DATA.saveSetlist(state, token);
           resultId = sheetsResult.id || resultId;

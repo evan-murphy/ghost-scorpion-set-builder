@@ -40,12 +40,14 @@ const ARCHIVE = (function() {
     const tonight = setlists.find(sl => sl.date === today);
     const hasCatalog = songs.length > 0;
 
+    const canEdit = typeof ACCESS === 'undefined' || ACCESS.canEdit();
+
     if (!hasCatalog) {
       container.innerHTML = `
         <div class="setlists-empty">
           <h2 class="setlists-empty-title">No setlists yet</h2>
-          <p class="setlists-empty-text">Add songs to your catalog first, then create your first setlist.</p>
-          <a href="/new" data-route="/new" class="btn-start"><span class="material-icons">add</span> Create your first setlist</a>
+          <p class="setlists-empty-text">${canEdit ? 'Add songs to your catalog first, then create your first setlist.' : 'No setlists available yet.'}</p>
+          ${canEdit ? '<a href="/new" data-route="/new" class="btn-start"><span class="material-icons">add</span> Create your first setlist</a>' : ''}
         </div>
       `;
       return;
@@ -90,10 +92,10 @@ const ARCHIVE = (function() {
           <button type="button" class="setlists-row-overflow icon-btn" aria-label="More actions" aria-haspopup="true" aria-expanded="false" data-id="${sl.id}"><span class="material-icons">more_horiz</span></button>
           <div class="setlists-overflow-menu" role="menu" aria-label="Setlist actions">
             <button type="button" role="menuitem" data-action="open" data-id="${sl.id}"><span class="material-icons">play_arrow</span> Open</button>
-            <button type="button" role="menuitem" data-action="edit" data-id="${sl.id}"><span class="material-icons">edit</span> Edit</button>
-            <button type="button" role="menuitem" data-action="dup" data-id="${sl.id}"><span class="material-icons">content_copy</span> Duplicate</button>
+            ${canEdit ? `<button type="button" role="menuitem" data-action="edit" data-id="${sl.id}"><span class="material-icons">edit</span> Edit</button>
+            <button type="button" role="menuitem" data-action="dup" data-id="${sl.id}"><span class="material-icons">content_copy</span> Duplicate</button>` : ''}
             <button type="button" role="menuitem" data-action="pdf" data-id="${sl.id}"><span class="material-icons">picture_as_pdf</span> Export PDF</button>
-            <button type="button" role="menuitem" data-action="del" data-id="${sl.id}" class="overflow-menu-item-danger"><span class="material-icons">delete</span> Delete</button>
+            ${canEdit ? `<button type="button" role="menuitem" data-action="del" data-id="${sl.id}" class="overflow-menu-item-danger"><span class="material-icons">delete</span> Delete</button>` : ''}
           </div>
         </div>
       `;

@@ -66,7 +66,7 @@ const CATALOG = (function() {
     if (typeof DISPLAY_TITLE_OVERRIDES !== 'undefined') {
       DISPLAY_TITLE_OVERRIDES.set(id, val || null);
     }
-    if (typeof AUTH !== 'undefined' && AUTH.isSignedIn() && (CONFIG.APPS_SCRIPT_URL || CONFIG.APPS_SCRIPT_PROXY_URL)) {
+    if (typeof AUTH !== 'undefined' && AUTH.isSignedIn() && (typeof ACCESS === 'undefined' || ACCESS.canEdit()) && (CONFIG.APPS_SCRIPT_URL || CONFIG.APPS_SCRIPT_PROXY_URL)) {
       DATA.saveCatalogDisplayTitle(id, val || null, AUTH.getToken()).catch(e => console.warn('Save failed:', e));
     }
   }
@@ -131,7 +131,7 @@ const CATALOG = (function() {
       const cells = columns.map(col => {
         const isEditable = col === 'display_title';
         const val = renderCell(t, col);
-        if (isEditable) {
+        if (isEditable && (typeof ACCESS === 'undefined' || ACCESS.canEdit())) {
           return `<td class="catalog-cell-editable" data-id="${t.id}" data-col="${col}"><input type="text" value="${escapeHtml(t[col] || '')}" data-id="${t.id}"></td>`;
         }
         return `<td data-id="${t.id}">${val}</td>`;
@@ -411,22 +411,27 @@ const CATALOG = (function() {
     state.tracks = songs.map(s => DATA.normalizeTrack(s));
 
     const signedIn = typeof AUTH !== 'undefined' && AUTH.isSignedIn();
-    const canSaveToSheet = !!(CONFIG.APPS_SCRIPT_URL || CONFIG.APPS_SCRIPT_PROXY_URL);
+    const canEdit = typeof ACCESS === 'undefined' || ACCESS.canEdit();
+    const canSaveToSheet = canEdit && !!(CONFIG.APPS_SCRIPT_URL || CONFIG.APPS_SCRIPT_PROXY_URL);
     const advanced = state.prefs.get('advancedMode');
 
-    const authBanner = !signedIn && canSaveToSheet ? `
-      <div class="catalog-auth-banner" id="catalog-auth-banner">
-        <p>Sign in with Google to save edits to the sheet.</p>
-        <div id="catalog-google-signin"></div>
+    const authBanner = !canEdit ? `
+      <div class="catalog-auth-banner">
+        <p>View only — you need Edit access on the setlists spreadsheet to change the catalog.</p>
       </div>
     ` : signedIn ? `
       <div class="catalog-auth-banner catalog-signed-in">
         <p>Signed in. Edits save to the sheet.</p>
       </div>
-    ` : '';
+    ` : `
+      <div class="catalog-auth-banner" id="catalog-auth-banner">
+        <p>Sign in with Google to save edits to the sheet.</p>
+        <div id="catalog-google-signin"></div>
+      </div>
+    `;
 
     const pending = typeof PENDING_SONG !== 'undefined' ? PENDING_SONG.get() : null;
-    const addSongForm = `
+    const addSongForm = canEdit ? `
       <div class="catalog-add-song">
         <h2 style="font-family: var(--font-display); font-size: 1rem; margin-bottom: 0.5rem;">Add new song</h2>
         <div class="catalog-add-form">
@@ -438,8 +443,8 @@ const CATALOG = (function() {
           <button type="button" class="btn-stage" id="stage-song-btn">Stage song</button>
         </div>
       </div>
-    `;
-    const stagedBlock = pending ? `
+    ` : '';
+    const stagedBlock = canEdit && pending ? `
       <div class="catalog-staged">
         <span class="catalog-staged-title">${escapeHtml(pending.display_title || pending.title || 'Untitled')}</span>
         <span class="catalog-staged-meta">${escapeHtml(pending.album || '')} ${pending.year ? '(' + pending.year + ')' : ''}</span>

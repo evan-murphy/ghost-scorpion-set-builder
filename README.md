@@ -22,7 +22,8 @@ A set list builder and archive for **Beware The Dangers Of A Ghost Scorpion!** �
 ### Stack
 
 - **Vanilla JS** — No framework. Client-side routing, modular scripts, and a single HTML shell.
-- **Google Sheets** — Backend. Songs and set lists live in two spreadsheets; reads use the Sheets API, writes go through an Apps Script web app.
+- **Google Sheets** — Backend. Songs and set lists live in spreadsheets; reads use the Sheets API **as the signed-in user**; writes go through an Apps Script web app.
+- **Access control** — Sign in with Google. App access = Drive access to the setlists spreadsheet (`ACCESS_SHEET_ID`). Viewer = read-only; Editor = create/edit setlists and catalog. Share the Sheet in Google to grant access (Request access uses the normal Sheets flow).
 - **PWA** — Installable on mobile with a wake lock so the screen stays on during shows.
 
 ### Design choices

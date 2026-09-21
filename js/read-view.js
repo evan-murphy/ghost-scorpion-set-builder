@@ -3,7 +3,41 @@
  */
 
 const READ_VIEW = (function() {
+  let readViewController = null;
+
+  function abort() {
+    readViewController?.abort();
+    readViewController = null;
+  }
+
+  function getFullscreenStatusLine() {
+    const root = document.documentElement;
+    const hasApi = !!(root.requestFullscreen || root.webkitRequestFullscreen);
+    const inFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+    if (inFs) return 'Fullscreen: on.';
+    if (!hasApi) {
+      if (typeof PWA !== 'undefined' && PWA.isIOS()) {
+        const chrome = PWA.isChromeIOS();
+        return chrome
+          ? 'Chrome on iPhone uses WebKit (Apple requirement) — no tab fullscreen. Add to Home Screen (⋯ menu), open from icon.'
+          : 'No web fullscreen on iPhone — Add to Home Screen, then open from the icon.';
+      }
+      return 'Fullscreen not available in this browser.';
+    }
+    return 'Fullscreen: off — tap the yellow button.';
+  }
+
+  function refreshStageStatus(wakeStatusEl) {
+    if (!wakeStatusEl) return;
+    const wake =
+      typeof PWA !== 'undefined' ? PWA.getWakeLockStatusLine() : '○ Wake lock unavailable (script error).';
+    wakeStatusEl.textContent = `${wake} ${getFullscreenStatusLine()}`;
+  }
+
   async function render(container, id, { navigate }) {
+    abort();
+    readViewController = new AbortController();
+    const { signal } = readViewController;
     container.innerHTML = '<p style="text-align:center;color:#999;">Loading...</p>';
 
     let songs, setlists;
@@ -48,12 +82,13 @@ const READ_VIEW = (function() {
             <li class="${item.divider ? 'divider' : ''}">${item.divider ? '—' : item.display_title}</li>
           `).join('')}
         </ul>
-        <div class="stage-control-bar">
+        <div class="stage-control-bar stage-control-bar--sticky">
           <div class="stage-control-divider"></div>
           <div class="stage-control-row stage-control-nav">
             <a href="/" data-route="/" class="stage-control-btn stage-control-back"><span class="material-icons">arrow_back</span> Back to Setlists</a>
           </div>
           <button type="button" class="stage-control-primary" id="btn-fullscreen"><span class="material-icons" id="btn-fullscreen-icon">fullscreen</span> <span id="btn-fullscreen-label">Enter Stage View</span></button>
+          <p class="stage-wake-status" id="stage-wake-status" aria-live="polite"></p>
           <div class="stage-control-row stage-control-utils">
             <div class="stage-control-more-wrap">
               <button type="button" class="stage-control-btn stage-control-more" id="btn-more" aria-haspopup="true" aria-expanded="false"><span class="material-icons">more_horiz</span> More</button>
@@ -74,12 +109,8 @@ const READ_VIEW = (function() {
       </div>
     `;
 
-    if (typeof PWA !== 'undefined') {
-      PWA.enableWakeLock().then(() => {
-        const t = document.getElementById('wake-toggle');
-        if (t) t.checked = PWA.isWakeLockActive();
-      });
-    }
+    const wakeStatusEl = document.getElementById('stage-wake-status');
+    refreshStageStatus(wakeStatusEl);
 
     const fullscreenBtn = document.getElementById('btn-fullscreen');
     const fullscreenIcon = document.getElementById('btn-fullscreen-icon');
@@ -87,62 +118,97 @@ const READ_VIEW = (function() {
     if (fullscreenBtn) {
       const fsEl = document.documentElement;
       const hasFs = () => !!(document.fullscreenElement ?? document.webkitFullscreenElement);
-      fullscreenBtn.addEventListener('click', async () => {
-        try {
-          if (hasFs()) {
-            await (document.exitFullscreen ?? document.webkitExitFullscreen)?.();
-          } else {
-            await (fsEl.requestFullscreen ?? fsEl.webkitRequestFullscreen)?.();
-            if (typeof PWA !== 'undefined') PWA.enableWakeLock();
-          }
-        } catch (e) {}
-      });
       const onFsChange = () => {
         if (fullscreenIcon) fullscreenIcon.textContent = hasFs() ? 'fullscreen_exit' : 'fullscreen';
         if (fullscreenLabel) fullscreenLabel.textContent = hasFs() ? 'Exit Stage View' : 'Enter Stage View';
+        refreshStageStatus(wakeStatusEl);
       };
-      document.addEventListener('fullscreenchange', onFsChange);
-      document.addEventListener('webkitfullscreenchange', onFsChange);
+      fullscreenBtn.addEventListener(
+        'click',
+        async () => {
+          if (wakeStatusEl) wakeStatusEl.textContent = 'Requesting fullscreen + screen awake…';
+          try {
+            if (hasFs()) {
+              await (document.exitFullscreen ?? document.webkitExitFullscreen)?.();
+            } else {
+              if (typeof PWA !== 'undefined') {
+                await PWA.enableWakeLock();
+                const t = document.getElementById('wake-toggle');
+                if (t) t.checked = PWA.isWakeLockActive();
+              }
+              const reqFs = fsEl.requestFullscreen ?? fsEl.webkitRequestFullscreen;
+              if (reqFs) await reqFs.call(fsEl);
+            }
+          } catch (e) {
+            /* Fullscreen often fails in in-app browsers; wake lock may still succeed. */
+          }
+          onFsChange();
+        },
+        { signal }
+      );
+      document.addEventListener('fullscreenchange', onFsChange, { signal });
+      document.addEventListener('webkitfullscreenchange', onFsChange, { signal });
       onFsChange();
     }
+
+    document.addEventListener(
+      'visibilitychange',
+      () => {
+        if (document.visibilityState === 'visible') refreshStageStatus(wakeStatusEl);
+      },
+      { signal }
+    );
 
     const moreBtn = document.getElementById('btn-more');
     const moreMenu = document.getElementById('more-menu');
     if (moreBtn && moreMenu) {
-      moreBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const isHidden = moreMenu.getAttribute('aria-hidden') === 'true';
-        moreMenu.setAttribute('aria-hidden', isHidden ? 'false' : 'true');
-        moreBtn.setAttribute('aria-expanded', isHidden);
-      });
+      moreBtn.addEventListener(
+        'click',
+        (e) => {
+          e.stopPropagation();
+          const isHidden = moreMenu.getAttribute('aria-hidden') === 'true';
+          moreMenu.setAttribute('aria-hidden', isHidden ? 'false' : 'true');
+          moreBtn.setAttribute('aria-expanded', isHidden);
+        },
+        { signal }
+      );
       const closeMore = () => {
         moreMenu.setAttribute('aria-hidden', 'true');
         moreBtn?.setAttribute('aria-expanded', 'false');
       };
-      document.addEventListener('click', closeMore);
-      moreMenu.addEventListener('click', (e) => e.stopPropagation());
+      document.addEventListener('click', closeMore, { signal });
+      moreMenu.addEventListener('click', (e) => e.stopPropagation(), { signal });
     }
 
     const wakeToggle = document.getElementById('wake-toggle');
     if (wakeToggle && typeof PWA !== 'undefined') {
-      wakeToggle.addEventListener('change', async () => {
-        if (wakeToggle.checked) {
-          await PWA.enableWakeLock();
-        } else {
-          await PWA.releaseWakeLock();
-        }
-      });
+      wakeToggle.addEventListener(
+        'change',
+        async () => {
+          if (wakeToggle.checked) {
+            await PWA.enableWakeLock();
+          } else {
+            await PWA.releaseWakeLock();
+          }
+          refreshStageStatus(wakeStatusEl);
+        },
+        { signal }
+      );
     }
 
     const pdfBtn = container.querySelector('.stage-control-export-pdf');
     if (pdfBtn && typeof PDF !== 'undefined') {
-      pdfBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const sl = { ...setlist, songs: setlist.song_ids.map(i => songMap[i]).filter(Boolean) };
-        PDF.download(sl);
-        if (moreMenu) moreMenu.setAttribute('aria-hidden', 'true');
-        if (moreBtn) moreBtn.setAttribute('aria-expanded', 'false');
-      });
+      pdfBtn.addEventListener(
+        'click',
+        (e) => {
+          e.stopPropagation();
+          const sl = { ...setlist, songs: setlist.song_ids.map(i => songMap[i]).filter(Boolean) };
+          PDF.download(sl);
+          if (moreMenu) moreMenu.setAttribute('aria-hidden', 'true');
+          if (moreBtn) moreBtn.setAttribute('aria-expanded', 'false');
+        },
+        { signal }
+      );
     }
   }
 
@@ -157,5 +223,5 @@ const READ_VIEW = (function() {
     return result;
   }
 
-  return { render };
+  return { render, abort };
 })();

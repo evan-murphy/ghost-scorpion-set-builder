@@ -1,23 +1,18 @@
 /**
  * BTDOAGS Set List — Apps Script Web App
- * Handles: saveSetlist, saveCatalogDisplayTitle
- * Auth: Google ID token verification + allowlist
+ * Handles: saveSetlist, saveCatalogDisplayTitle, …
+ * Auth: Google ID token + must be Editor/Owner on ACCESS_SHEET_ID (Drive ACL)
  */
 
 const CONFIG = {
   SONGS_SHEET_ID: '1qEl-eCzp5cy_5tWqsS4FgCYEM0BGR8JRC8lv3MzeyZU',
   SETLISTS_SHEET_ID: '1lrE0Esgo0Lu7-7Bn5j91xhzlcjYEwkSRq_LCzMbwZqE',
+  /** Same as client ACCESS_SHEET_ID — share this file to grant write access. */
+  ACCESS_SHEET_ID: '1lrE0Esgo0Lu7-7Bn5j91xhzlcjYEwkSRq_LCzMbwZqE',
   SONGS_SHEET_NAME: 'Sheet1',
   SETLISTS_SHEET_NAME: 'Sheet1',
   /** Raw CSV on default branch — source of truth in git; run syncSetlistsFromRepoCsv() to append missing rows to the Sheet. */
-  REPO_SETLISTS_CSV_URL: 'https://raw.githubusercontent.com/evan-murphy/ghost-scorpion-set-builder/main/sheets-import/setlists.csv',
-  ALLOWLIST: [
-    'murphy.evan@gmail.com',
-    'btdoags@gmail.com',
-    'mccullaghxi@gmail.com',
-    'captainisdead@gmail.com',
-    'sjones985@gmail.com'
-  ]
+  REPO_SETLISTS_CSV_URL: 'https://raw.githubusercontent.com/evan-murphy/ghost-scorpion-set-builder/main/sheets-import/setlists.csv'
 };
 
 function doPost(e) {
@@ -39,8 +34,8 @@ function doPost(e) {
       result = { ok: false, error: 'Invalid or expired token' };
       return response(result);
     }
-    if (!isAllowed(user.email)) {
-      result = { ok: false, error: 'Not authorized' };
+    if (!canEditAccessSheet(user.email)) {
+      result = { ok: false, error: 'Not authorized — need Edit access on the setlists spreadsheet' };
       return response(result);
     }
     if (action === 'saveSetlist') {
@@ -69,6 +64,19 @@ function response(obj) {
 }
 
 function verifyToken(token) {
+  if (!token) return null;
+  // Access token (OAuth popup flow)
+  try {
+    const userRes = UrlFetchApp.fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: 'Bearer ' + token },
+      muteHttpExceptions: true
+    });
+    if (userRes.getResponseCode() === 200) {
+      const data = JSON.parse(userRes.getContentText());
+      if (data.email) return { email: String(data.email).toLowerCase() };
+    }
+  } catch (e) {}
+  // Legacy ID token
   try {
     const res = UrlFetchApp.fetch(
       'https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(token),
@@ -82,9 +90,25 @@ function verifyToken(token) {
   }
 }
 
-function isAllowed(email) {
-  const list = CONFIG.ALLOWLIST.map(function(e) { return e.toLowerCase(); });
-  return list.indexOf((email || '').toLowerCase()) !== -1;
+/** True if email is Owner or Editor on ACCESS_SHEET_ID (Commenter/Viewer cannot write). */
+function canEditAccessSheet(email) {
+  email = (email || '').toLowerCase();
+  if (!email) return false;
+  var fileId = CONFIG.ACCESS_SHEET_ID || CONFIG.SETLISTS_SHEET_ID;
+  try {
+    var file = DriveApp.getFileById(fileId);
+    try {
+      var owner = file.getOwner();
+      if (owner && owner.getEmail().toLowerCase() === email) return true;
+    } catch (ownerErr) {}
+    var editors = file.getEditors();
+    for (var i = 0; i < editors.length; i++) {
+      if (editors[i].getEmail().toLowerCase() === email) return true;
+    }
+  } catch (e) {
+    return false;
+  }
+  return false;
 }
 
 function buildSetlistRowFromObject(setlist, createdIso) {

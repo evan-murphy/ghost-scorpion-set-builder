@@ -102,10 +102,36 @@ const DATA = (function() {
     return typeof window !== 'undefined' && window.location.search.includes('debug=1');
   }
 
-  function fetchWithTimeout(url, ms) {
+  function fetchWithTimeout(url, ms, opts = {}) {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), ms);
-    return fetch(url, { signal: ctrl.signal }).finally(() => clearTimeout(t));
+    return fetch(url, { ...opts, signal: ctrl.signal }).finally(() => clearTimeout(t));
+  }
+
+  async function sheetsAuthHeaders() {
+    if (typeof AUTH === 'undefined' || typeof ACCESS === 'undefined') {
+      throw new Error('Sign in required');
+    }
+    const scopes = ACCESS.SCOPES;
+    const token = await AUTH.getAccessToken(scopes);
+    if (!token) throw new Error('Sign in required');
+    return { Authorization: `Bearer ${token}` };
+  }
+
+  async function fetchSheetValues(spreadsheetId, range, label) {
+    const headers = await sheetsAuthHeaders();
+    const url =
+      `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(range)}`;
+    const res = await fetchWithTimeout(url, 12000, { headers }).catch(e => {
+      if (e.name === 'AbortError') throw new Error(`${label}: Request timed out (12s)`);
+      throw e;
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const msg = json.error?.message || json.error?.errors?.[0]?.message || `HTTP ${res.status}`;
+      throw new Error(`${label}: ${msg}`);
+    }
+    return json.values || [];
   }
 
   async function fetchSongs() {
@@ -113,17 +139,7 @@ const DATA = (function() {
     if (useMock()) {
       songs = [...MOCK_SONGS];
     } else {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SONGS_SHEET_ID}/values/${CONFIG.SONGS_RANGE}?key=${CONFIG.API_KEY}`;
-      const res = await fetchWithTimeout(url, 12000).catch(e => {
-        if (e.name === 'AbortError') throw new Error('Songs: Request timed out (12s)');
-        throw e;
-      });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        const msg = json.error?.message || json.error?.errors?.[0]?.message || `HTTP ${res.status}`;
-        throw new Error(`Songs: ${msg}`);
-      }
-      const rows = json.values || [];
+      const rows = await fetchSheetValues(CONFIG.SONGS_SHEET_ID, CONFIG.SONGS_RANGE, 'Songs');
       songs = rows.map((row) => ({
         id: parseInt(row[0], 10),
         title: row[1] || '',
@@ -159,17 +175,7 @@ const DATA = (function() {
     if (useMock()) {
       remote = MOCK_SETLISTS;
     } else {
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SETLISTS_SHEET_ID}/values/${CONFIG.SETLISTS_RANGE}?key=${CONFIG.API_KEY}`;
-      const res = await fetchWithTimeout(url, 12000).catch(e => {
-        if (e.name === 'AbortError') throw new Error('Setlists: Request timed out (12s)');
-        throw e;
-      });
-      const json = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        const msg = json.error?.message || json.error?.errors?.[0]?.message || `HTTP ${res.status}`;
-        throw new Error(`Setlists: ${msg}`);
-      }
-      const rows = json.values || [];
+      const rows = await fetchSheetValues(CONFIG.SETLISTS_SHEET_ID, CONFIG.SETLISTS_RANGE, 'Setlists');
       sheetRowCount = rows.length;
       remote = rows.map(row => ({
         id: row[0],

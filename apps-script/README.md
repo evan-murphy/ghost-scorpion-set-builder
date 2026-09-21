@@ -10,14 +10,9 @@ This script handles authenticated writes to your Google Sheets (setlists and cat
 
 ## 2. Configure the allowlist
 
-In `Code.gs`, edit the `ALLOWLIST` array and add band member emails (lowercase):
+In `Code.gs`, writes require the signed-in user to be an **Owner or Editor** on `ACCESS_SHEET_ID` (same spreadsheet as setlists). Share that file in Google Drive to grant access — no email allowlist.
 
-```javascript
-ALLOWLIST: [
-  'member1@example.com',
-  'member2@example.com'
-]
-```
+Viewer / Commenter on the Sheet → app is read-only (cannot save).
 
 ## 3. Songs sheet columns
 

@@ -52,6 +52,83 @@ body {
   line-height: 1.5;
 }
 
+/* Access gate — signed out or no Sheet permission */
+.access-gate-screen {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem 1.5rem;
+  gap: 0.75rem;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(243, 199, 12, 0.12), transparent 55%),
+    var(--bg);
+}
+.access-gate-logo {
+  height: 96px;
+  width: auto;
+  margin-bottom: 0.5rem;
+  opacity: 0.95;
+}
+.access-gate-title {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  letter-spacing: 0.04em;
+  margin: 0;
+  color: var(--text);
+}
+.access-gate-msg {
+  margin: 0;
+  max-width: 22rem;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1.45;
+}
+.access-gate-msg--secondary {
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+#access-gate-signin {
+  margin: 0.75rem 0 0.25rem;
+  min-height: 44px;
+}
+.access-gate-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.35rem;
+  padding: 0.7rem 1.25rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: var(--text);
+  font-size: 0.95rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+.access-gate-btn--primary {
+  background: var(--accent-yellow);
+  border-color: var(--accent-yellow);
+  color: #121212;
+  font-weight: 600;
+}
+.access-gate-link {
+  margin-top: 1rem;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+body.role-viewer .btn-new-setlist,
+body.role-viewer .archive-actions-edit,
+body.role-viewer [data-requires-edit] {
+  display: none !important;
+}
+
 /* Builder header — safe area insets for PWA on iOS (status bar, notch, Dynamic Island) */
 .builder-header {
   display: flex;
@@ -949,6 +1026,17 @@ body.builder-view #main-content {
   padding-top: 1rem;
 }
 
+.stage-control-bar--sticky {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  margin-top: 2.5rem;
+  padding-top: 1.25rem;
+  padding-bottom: max(0.35rem, env(safe-area-inset-bottom));
+  background: linear-gradient(to top, #121212 70%, rgba(18, 18, 18, 0.92) 100%);
+  box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.55);
+}
+
 .stage-control-divider {
   height: 1px;
   background: rgba(255, 255, 255, 0.12);
@@ -1020,6 +1108,15 @@ body.builder-view #main-content {
 
 .stage-control-primary .material-icons {
   font-size: 1.35rem;
+}
+
+.stage-wake-status {
+  margin: 0.35rem 0 0;
+  text-align: center;
+  font-size: 0.88rem;
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.35;
+  min-height: 2.7em;
 }
 
 /* More menu */

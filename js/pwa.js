@@ -5,7 +5,6 @@
 const PWA = (function() {
   const STORAGE_KEY = 'pwa-install-prompt-dismissed';
   let wakeLock = null;
-  let statusEl = null;
   let deferredInstallPrompt = null;
 
   function isStandalone() {
@@ -20,6 +19,11 @@ const PWA = (function() {
 
   function isAndroid() {
     return /Android/.test(navigator.userAgent);
+  }
+
+  /** Google Chrome on iPhone/iPad — still WebKit; same limits as Safari for fullscreen / wake lock. */
+  function isChromeIOS() {
+    return /CriOS/i.test(navigator.userAgent);
   }
 
   function wasPromptDismissed() {
@@ -43,17 +47,22 @@ const PWA = (function() {
     const header = document.getElementById('main-header');
     if (!header || document.getElementById('pwa-install-banner')) return;
 
-    const iosSteps = [
+    const iosSafariSteps = [
       'Tap the <strong>Share</strong> button (square with arrow) at the bottom of the screen',
       'Scroll down and tap <strong>Add to Home Screen</strong>',
       'Tap <strong>Add</strong> in the top right'
+    ];
+    const iosChromeSteps = [
+      'Tap <strong>⋯</strong> (menu) in Chrome',
+      'Tap <strong>Add to Home Screen</strong> and confirm',
+      'Open the set list from the new icon — same WebKit limits as Safari on iPhone'
     ];
     const androidSteps = [
       'Tap the <strong>⋮</strong> menu (three dots) in the top right',
       'Tap <strong>Add to Home screen</strong> or <strong>Install app</strong>',
       'Tap <strong>Add</strong> or <strong>Install</strong> to confirm'
     ];
-    const steps = isIOS() ? iosSteps : androidSteps;
+    const steps = isAndroid() ? androidSteps : isChromeIOS() ? iosChromeSteps : iosSafariSteps;
 
     const banner = document.createElement('div');
     banner.id = 'pwa-install-banner';
@@ -106,14 +115,36 @@ const PWA = (function() {
     maybeAddInstallButton();
   });
 
+  function getWakeLockStatusLine() {
+    if (!window.isSecureContext) {
+      return '○ Screen awake: needs https:// (not a file or http link).';
+    }
+    if (!('wakeLock' in navigator)) {
+      if (isIOS()) {
+        return '○ Screen awake: iPhone often hides this in the browser tab — add to Home Screen and open from the icon.';
+      }
+      return '○ This browser can’t keep the screen on.';
+    }
+    if (wakeLock !== null) {
+      return '● Screen awake';
+    }
+    return '○ Screen may sleep';
+  }
+
   async function enableWakeLock() {
-    if (!('wakeLock' in navigator)) return;
+    if (!window.isSecureContext) {
+      return false;
+    }
+    if (!('wakeLock' in navigator)) {
+      return false;
+    }
+    if (wakeLock !== null) {
+      return true;
+    }
     try {
       wakeLock = await navigator.wakeLock.request('screen');
-      if (statusEl) statusEl.textContent = '● Screen awake';
       return true;
     } catch (err) {
-      if (statusEl) statusEl.textContent = '○ Screen may sleep';
       return false;
     }
   }
@@ -124,7 +155,6 @@ const PWA = (function() {
         await wakeLock.release();
       } catch (e) {}
       wakeLock = null;
-      if (statusEl) statusEl.textContent = '○ Screen may sleep';
     }
   }
 
@@ -141,15 +171,6 @@ const PWA = (function() {
     }
   }
 
-  function updateStatusEl(el) {
-    statusEl = el;
-    if (wakeLock) {
-      if (el) el.textContent = '● Screen awake';
-    } else {
-      if (el) el.textContent = '○ Screen may sleep';
-    }
-  }
-
   document.addEventListener('visibilitychange', () => {
     if (wakeLock !== null && document.visibilityState === 'visible') {
       enableWakeLock();
@@ -162,5 +183,14 @@ const PWA = (function() {
     showInstallBanner();
   }
 
-  return { enableWakeLock, releaseWakeLock, toggleWakeLock, isWakeLockActive, updateStatusEl };
+  return {
+    enableWakeLock,
+    releaseWakeLock,
+    toggleWakeLock,
+    isWakeLockActive,
+    getWakeLockStatusLine,
+    isIOS,
+    isChromeIOS,
+    isStandalone
+  };
 })();

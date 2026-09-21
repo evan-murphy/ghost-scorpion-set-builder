@@ -8,6 +8,10 @@ const CONFIG = {
   USE_MOCK: false,
   SONGS_SHEET_ID: '1qEl-eCzp5cy_5tWqsS4FgCYEM0BGR8JRC8lv3MzeyZU',
   SETLISTS_SHEET_ID: '1lrE0Esgo0Lu7-7Bn5j91xhzlcjYEwkSRq_LCzMbwZqE',
+  /** Master spreadsheet for ACL — share this file to grant app access. */
+  ACCESS_SHEET_ID: '1lrE0Esgo0Lu7-7Bn5j91xhzlcjYEwkSRq_LCzMbwZqE',
+  /** Optional override; default is docs.google.com request-access for ACCESS_SHEET_ID. */
+  REQUEST_ACCESS_URL: '',
   API_KEY: 'AIzaSyDfOX4JsSmKnT8Eo0-Ico8q6bs6I5wPrMo',
   // Sheet tab name if not "Sheet1" (e.g. "songs", "setlists")
   SONGS_RANGE: 'Sheet1!A2:J',
