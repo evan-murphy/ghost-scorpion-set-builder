@@ -7,7 +7,7 @@
  * One-time setup: https://developers.cloudflare.com/workers/get-started/guide
  */
 
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyePfMmUyr6g7m7oUdesfUYhH2Vy3c_PxD7v42TpYFS9uKkL-Bpq08CA8_nYLe7reI/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz4Hm3rfdH9tjGyzt9G5vJI08D5_H8L0D3-vaPnIBh2v41lpveGAk1A7zx38n96-w5Y/exec';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',

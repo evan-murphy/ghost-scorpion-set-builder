@@ -19,7 +19,7 @@ const CONFIG = {
   // Google Sign-In (OAuth 2.0 Web client ID from Cloud Console)
   GOOGLE_CLIENT_ID: '755824588930-6dqh3gi7vc0u628irgn4bparcgdhetb0.apps.googleusercontent.com',
   // Apps Script Web App URL (after deploying as web app, Execute as: Me, Who has access: Anyone)
-  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbyePfMmUyr6g7m7oUdesfUYhH2Vy3c_PxD7v42TpYFS9uKkL-Bpq08CA8_nYLe7reI/exec',
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbz4Hm3rfdH9tjGyzt9G5vJI08D5_H8L0D3-vaPnIBh2v41lpveGAk1A7zx38n96-w5Y/exec',
   // CORS proxy URL (Cloudflare Worker) — set this to fix CORS; see cloudflare-worker/README.md
   APPS_SCRIPT_PROXY_URL: 'https://setlist-api-proxy.murphy-evan.workers.dev',
   // Base path for GitHub Pages (e.g. '/ghost-scorpion-set-builder' if repo name)
