@@ -65,33 +65,44 @@ const ACCESS = (function() {
     const id = sheetId();
     if (!id || !accessToken) return 'none';
 
-    async function probe(fileId) {
+    async function sheetsReadable(fileId) {
       const url =
-        `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}` +
-        `?fields=id,capabilities(canEdit)`;
+        `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(fileId)}` +
+        `?fields=spreadsheetId`;
       const res = await fetch(url, {
         headers: { Authorization: `Bearer ${accessToken}` }
       });
-      if (res.status === 401 || res.status === 403 || res.status === 404) {
-        return null;
-      }
-      if (!res.ok) {
-        throw new Error(`Drive check failed (${res.status})`);
-      }
-      return res.json();
+      if (res.status === 401 || res.status === 403 || res.status === 404) return false;
+      if (!res.ok) throw new Error(`Sheets check failed (${res.status})`);
+      return true;
     }
 
-    const primary = await probe(id);
-    if (!primary) return 'none';
+    async function driveCanEdit(fileId) {
+      const url =
+        `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}` +
+        `?fields=capabilities(canEdit)`;
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      return !!(data.capabilities && data.capabilities.canEdit);
+    }
+
+    const canReadPrimary = await sheetsReadable(id);
+    if (!canReadPrimary) return 'none';
 
     const songsId = CONFIG.SONGS_SHEET_ID;
     if (songsId && songsId !== id) {
-      const songs = await probe(songsId);
-      if (!songs) return 'none';
+      const canReadSongs = await sheetsReadable(songsId);
+      if (!canReadSongs) return 'none';
     }
 
-    if (primary.capabilities && primary.capabilities.canEdit) return 'editor';
-    return 'viewer';
+    const edit = await driveCanEdit(id);
+    if (edit === true) return 'editor';
+    if (edit === false) return 'viewer';
+    // Drive metadata unavailable — Sheet is readable; allow edit (band default).
+    return 'editor';
   }
 
   async function refresh() {

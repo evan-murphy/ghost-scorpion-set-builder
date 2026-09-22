@@ -14,6 +14,8 @@ const AUTH = (function() {
   let accessTokenExpiresAt = 0;
   let email = null;
   let listeners = [];
+  let initPromise = null;
+  let redirectHandled = false;
 
   const SIGN_IN_SCOPES = [
     'openid',
@@ -28,6 +30,7 @@ const AUTH = (function() {
   }
 
   function redirectUri() {
+    // Must match Authorized redirect URI exactly (with trailing slash).
     return window.location.origin + '/';
   }
 
@@ -120,9 +123,6 @@ const AUTH = (function() {
     return (data.email || '').toLowerCase() || null;
   }
 
-  /**
-   * Start Google sign-in (full-page redirect).
-   */
   async function signIn() {
     if (!CONFIG.GOOGLE_CLIENT_ID) throw new Error('Missing GOOGLE_CLIENT_ID');
     const verifier = randomString(32);
@@ -145,18 +145,20 @@ const AUTH = (function() {
     window.location.assign('https://accounts.google.com/o/oauth2/v2/auth?' + params.toString());
   }
 
-  /**
-   * If URL has ?code= from Google, exchange for tokens. Returns true if handled.
-   */
   async function completeRedirectIfPresent() {
+    if (redirectHandled) return false;
+
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
     const state = params.get('state');
     const err = params.get('error');
     if (!code && !err) return false;
 
-    const cleanPath = window.location.pathname || '/';
-    history.replaceState({}, '', cleanPath);
+    redirectHandled = true;
+
+    const cleanPath = (window.location.pathname || '/').replace(/\/$/, '') || '/';
+    const base = (typeof CONFIG !== 'undefined' && CONFIG.BASE_PATH) || '';
+    history.replaceState({}, '', (base || '') + (cleanPath === '/' ? '/' : cleanPath));
 
     if (err) {
       throw new Error(err === 'access_denied' ? 'Access denied by Google' : err);
@@ -200,22 +202,34 @@ const AUTH = (function() {
     return true;
   }
 
-  function getAccessToken(scopes) {
+  function getAccessToken() {
     if (!isSignedIn()) return Promise.resolve(null);
     return Promise.resolve(accessToken);
   }
 
-  async function init() {
-    loadSession();
-    try {
-      await completeRedirectIfPresent();
-    } catch (e) {
-      console.warn('OAuth redirect', e);
-      clearSession();
-      notify();
-      window.__AUTH_REDIRECT_ERROR = e?.message || String(e);
-    }
-    return !!CONFIG.GOOGLE_CLIENT_ID;
+  /**
+   * Idempotent. Safe to call from multiple places — only one redirect exchange runs.
+   */
+  function init() {
+    if (initPromise) return initPromise;
+
+    initPromise = (async () => {
+      loadSession();
+      try {
+        await completeRedirectIfPresent();
+      } catch (e) {
+        console.warn('OAuth redirect', e);
+        // Only clear if we never got a session — don't wipe a parallel success.
+        if (!isSignedIn()) {
+          clearSession();
+          window.__AUTH_REDIRECT_ERROR = e?.message || String(e);
+        }
+        notify();
+      }
+      return !!CONFIG.GOOGLE_CLIENT_ID;
+    })();
+
+    return initPromise;
   }
 
   function renderButton(element) {
@@ -244,6 +258,8 @@ const AUTH = (function() {
   function signOut() {
     const toRevoke = accessToken;
     clearSession();
+    redirectHandled = false;
+    initPromise = null;
     if (toRevoke && window.google?.accounts?.oauth2) {
       try { google.accounts.oauth2.revoke(toRevoke); } catch (e) {}
     }

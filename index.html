@@ -36,11 +36,11 @@
 
   <div id="print-target" aria-hidden="true"></div>
 
-  <!-- config + auth must load before GSI so AUTH.init() runs when GSI onload fires -->
-  <script src="js/config.js?v=20260921"></script>
-  <script src="js/auth.js?v=20260921d"></script>
-  <script src="js/access.js?v=20260921"></script>
-  <script src="https://accounts.google.com/gsi/client" async defer onload="typeof AUTH !== 'undefined' && AUTH.init()"></script>
+  <!-- config + auth must load before GSI; do NOT call AUTH.init on GSI onload (double-init burned OAuth codes) -->
+  <script src="js/config.js?v=20260922"></script>
+  <script src="js/auth.js?v=20260922"></script>
+  <script src="js/access.js?v=20260922"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="js/catalog-metadata.js?v=20260410"></script>
   <script src="js/catalog-preferences.js?v=20260410"></script>
   <script src="js/draft-store.js?v=20260410"></script>
@@ -57,6 +57,6 @@
   <script src="js/builder.js?v=20260921"></script>
   <script src="js/read-view.js?v=20260413"></script>
   <script src="js/catalog.js?v=20260921"></script>
-  <script src="js/app.js?v=20260921d"></script>
+  <script src="js/app.js?v=20260922"></script>
 </body>
 </html>

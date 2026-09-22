@@ -7,8 +7,8 @@
   const mainContent = document.getElementById('main-content');
   const mainHeader = document.getElementById('main-header');
   let gateUnsubAuth = null;
-  let gateUnsubAccess = null;
-  let bootstrapped = false;
+  let bootstrapInFlight = null;
+  let gatePassed = false;
 
   function getBasePath() {
     if (CONFIG.BASE_PATH) return CONFIG.BASE_PATH;
@@ -49,25 +49,6 @@
     render();
   }
 
-  function waitForGsi(ms = 10000) {
-    return new Promise((resolve) => {
-      if (window.google?.accounts?.id) {
-        resolve(true);
-        return;
-      }
-      const start = Date.now();
-      const t = setInterval(() => {
-        if (window.google?.accounts?.id) {
-          clearInterval(t);
-          resolve(true);
-        } else if (Date.now() - start > ms) {
-          clearInterval(t);
-          resolve(false);
-        }
-      }, 50);
-    });
-  }
-
   function applyRoleChrome() {
     const canEdit = typeof ACCESS !== 'undefined' && ACCESS.canEdit();
     document.body.classList.toggle('role-viewer', !canEdit);
@@ -77,6 +58,7 @@
   }
 
   function renderGate({ mode, message }) {
+    gatePassed = false;
     document.body.classList.add('access-gate');
     document.body.classList.remove('stage-view', 'builder-view', 'archive-view', 'catalog-view', 'role-viewer', 'role-editor');
     if (mainHeader) mainHeader.style.display = 'none';
@@ -109,7 +91,6 @@
       return;
     }
 
-    // denied
     mainContent.innerHTML = `
       <div class="access-gate-screen">
         <img src="${logo}" alt="" class="access-gate-logo" height="96">
@@ -121,49 +102,61 @@
       </div>`;
     mainContent.querySelector('#access-gate-signout')?.addEventListener('click', () => {
       AUTH.signOut && AUTH.signOut();
+      gatePassed = false;
       bootstrap();
     });
   }
 
   async function bootstrap() {
-    if (typeof ACCESS !== 'undefined' && ACCESS.bypass()) {
-      document.body.classList.remove('access-gate');
-      if (mainHeader) mainHeader.style.display = '';
-      applyRoleChrome();
-      renderApp();
-      return;
-    }
+    if (bootstrapInFlight) return bootstrapInFlight;
 
-    renderGate({ mode: 'loading' });
+    bootstrapInFlight = (async () => {
+      try {
+        if (typeof ACCESS !== 'undefined' && ACCESS.bypass()) {
+          gatePassed = true;
+          document.body.classList.remove('access-gate');
+          if (mainHeader) mainHeader.style.display = '';
+          applyRoleChrome();
+          renderApp();
+          return;
+        }
 
-    const gsiReady = await waitForGsi();
-    if (typeof AUTH !== 'undefined') {
-      await AUTH.init();
-    }
+        renderGate({ mode: 'loading' });
 
-    if (!gsiReady || typeof AUTH === 'undefined' || !AUTH.isSignedIn()) {
-      renderGate({ mode: 'signin' });
-      if (!gateUnsubAuth && AUTH?.onAuthChange) {
-        gateUnsubAuth = AUTH.onAuthChange(() => {
-          if (AUTH.isSignedIn()) bootstrap();
-        });
+        if (typeof AUTH !== 'undefined') {
+          await AUTH.init();
+        }
+
+        if (typeof AUTH === 'undefined' || !AUTH.isSignedIn()) {
+          renderGate({ mode: 'signin' });
+          if (!gateUnsubAuth && AUTH?.onAuthChange) {
+            gateUnsubAuth = AUTH.onAuthChange(() => {
+              if (AUTH.isSignedIn()) bootstrap();
+            });
+          }
+          return;
+        }
+
+        const state = await ACCESS.refresh();
+        if (!state.canView) {
+          renderGate({
+            mode: 'denied',
+            message: "You're signed in, but you don't have access to the setlists spreadsheet."
+          });
+          return;
+        }
+
+        gatePassed = true;
+        document.body.classList.remove('access-gate');
+        if (mainHeader) mainHeader.style.display = '';
+        applyRoleChrome();
+        renderApp();
+      } finally {
+        bootstrapInFlight = null;
       }
-      return;
-    }
+    })();
 
-    const state = await ACCESS.refresh();
-    if (!state.canView) {
-      renderGate({
-        mode: 'denied',
-        message: "You're signed in, but you don't have access to the setlists spreadsheet."
-      });
-      return;
-    }
-
-    document.body.classList.remove('access-gate');
-    if (mainHeader) mainHeader.style.display = '';
-    applyRoleChrome();
-    renderApp();
+    return bootstrapInFlight;
   }
 
   function renderApp() {
@@ -246,8 +239,9 @@
       renderApp();
       return;
     }
-    if (!ACCESS.getState().canView) {
-      bootstrap();
+    if (!gatePassed) {
+      // Don't re-enter bootstrap from every navigate/popstate while gated.
+      if (!bootstrapInFlight) bootstrap();
       return;
     }
     renderApp();
@@ -273,18 +267,6 @@
   window.addEventListener('popstate', render);
 
   function start() {
-    if (bootstrapped) return;
-    bootstrapped = true;
-    if (gateUnsubAccess) gateUnsubAccess();
-    if (typeof ACCESS !== 'undefined' && ACCESS.onChange) {
-      gateUnsubAccess = ACCESS.onChange(() => {
-        if (ACCESS.getState().canView) {
-          document.body.classList.remove('access-gate');
-          if (mainHeader) mainHeader.style.display = '';
-          applyRoleChrome();
-        }
-      });
-    }
     bootstrap();
   }
 
