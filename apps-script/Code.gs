@@ -9,6 +9,8 @@ const CONFIG = {
   SETLISTS_SHEET_ID: '1lrE0Esgo0Lu7-7Bn5j91xhzlcjYEwkSRq_LCzMbwZqE',
   /** Same as client ACCESS_SHEET_ID — share this file to grant write access. */
   ACCESS_SHEET_ID: '1lrE0Esgo0Lu7-7Bn5j91xhzlcjYEwkSRq_LCzMbwZqE',
+  /** Must match js/config.js GOOGLE_CLIENT_ID */
+  OAUTH_CLIENT_ID: '755824588930-6dqh3gi7vc0u628irgn4bparcgdhetb0.apps.googleusercontent.com',
   SONGS_SHEET_NAME: 'Sheet1',
   SETLISTS_SHEET_NAME: 'Sheet1',
   /** Raw CSV on default branch — source of truth in git; run syncSetlistsFromRepoCsv() to append missing rows to the Sheet. */
@@ -25,6 +27,13 @@ function doPost(e) {
     }
     const body = JSON.parse(raw);
     const { action, token } = body;
+
+    // Public: exchange browser OAuth code for access token (needs Script Property OAUTH_CLIENT_SECRET)
+    if (action === 'exchangeAuthCode') {
+      result = exchangeAuthCode(body.code, body.codeVerifier, body.redirectUri);
+      return response(result);
+    }
+
     if (!token) {
       result = { ok: false, error: 'Missing token' };
       return response(result);
@@ -55,6 +64,48 @@ function doPost(e) {
     result = { ok: false, error: err.message || 'Server error' };
   }
   return response(result);
+}
+
+/**
+ * PKCE code → access_token. Set Script property OAUTH_CLIENT_SECRET
+ * (Cloud Console → Credentials → OAuth client → Client secret).
+ */
+function exchangeAuthCode(code, codeVerifier, redirectUri) {
+  var secret = PropertiesService.getScriptProperties().getProperty('OAUTH_CLIENT_SECRET');
+  if (!secret) {
+    return { ok: false, error: 'Server missing OAUTH_CLIENT_SECRET — set it in Apps Script → Project settings → Script properties' };
+  }
+  if (!code || !codeVerifier || !redirectUri) {
+    return { ok: false, error: 'Missing code, codeVerifier, or redirectUri' };
+  }
+  var res = UrlFetchApp.fetch('https://oauth2.googleapis.com/token', {
+    method: 'post',
+    contentType: 'application/x-www-form-urlencoded',
+    payload: {
+      client_id: CONFIG.OAUTH_CLIENT_ID,
+      client_secret: secret,
+      code: code,
+      code_verifier: codeVerifier,
+      grant_type: 'authorization_code',
+      redirect_uri: redirectUri
+    },
+    muteHttpExceptions: true
+  });
+  var data = {};
+  try {
+    data = JSON.parse(res.getContentText());
+  } catch (e) {
+    return { ok: false, error: 'Bad token response' };
+  }
+  if (res.getResponseCode() !== 200 || !data.access_token) {
+    return { ok: false, error: data.error_description || data.error || 'Token exchange failed' };
+  }
+  return {
+    ok: true,
+    access_token: data.access_token,
+    expires_in: data.expires_in || 3600,
+    token_type: data.token_type || 'Bearer'
+  };
 }
 
 function response(obj) {

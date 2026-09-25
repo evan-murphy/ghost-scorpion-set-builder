@@ -181,15 +181,35 @@ const AUTH = (function() {
       redirect_uri: redirectUri()
     });
 
-    const res = await fetch('https://oauth2.googleapis.com/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      const msg = data.error_description || data.error || 'Token exchange failed';
-      throw new Error(msg);
+    // Prefer server-side exchange (Web client needs client_secret — must not live in the browser).
+    const proxy = (CONFIG.APPS_SCRIPT_PROXY_URL || CONFIG.APPS_SCRIPT_URL) || '';
+    let data = {};
+    if (proxy) {
+      const exchangeRes = await fetch(proxy, {
+        method: 'POST',
+        body: new URLSearchParams({
+          data: JSON.stringify({
+            action: 'exchangeAuthCode',
+            code,
+            codeVerifier: verifier,
+            redirectUri: redirectUri()
+          })
+        })
+      });
+      data = await exchangeRes.json().catch(() => ({}));
+      if (!data.ok || !data.access_token) {
+        throw new Error(data.error || 'Token exchange failed (server)');
+      }
+    } else {
+      const res = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body
+      });
+      data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.access_token) {
+        throw new Error(data.error_description || data.error || 'Token exchange failed');
+      }
     }
 
     accessToken = data.access_token;

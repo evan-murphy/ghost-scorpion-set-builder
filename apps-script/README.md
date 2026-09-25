@@ -8,11 +8,25 @@ This script handles authenticated writes to your Google Sheets (setlists and cat
 2. New project
 3. Replace the default `Code.gs` with the contents of `Code.gs` in this folder
 
-## 2. Configure the allowlist
+## 2. OAuth client secret (required for sign-in)
 
-In `Code.gs`, writes require the signed-in user to be an **Owner or Editor** on `ACCESS_SHEET_ID` (same spreadsheet as setlists). Share that file in Google Drive to grant access — no email allowlist.
+In the Apps Script editor:
 
-Viewer / Commenter on the Sheet → app is read-only (cannot save).
+1. **Project Settings** (gear) → **Script properties** → **Add script property**
+2. Property: `OAUTH_CLIENT_SECRET`
+3. Value: Cloud Console → **Credentials** → your OAuth client → **Client secret** (the `****ZrrL` value — click to reveal/copy)
+4. Save
+
+Without this, browser sign-in cannot finish (Web OAuth clients need the secret server-side).
+
+## 3. Sheet access = app access
+
+Share these two spreadsheets with band members (Viewer or Editor):
+
+- Setlists / ACL: `ACCESS_SHEET_ID` / `SETLISTS_SHEET_ID`
+- Songs: `SONGS_SHEET_ID`
+
+Editor on the setlists sheet → can save in the app. Viewer → read-only.
 
 ## 3. Songs sheet columns
 
