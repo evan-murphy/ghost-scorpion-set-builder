@@ -86,6 +86,9 @@ const READ_VIEW = (function() {
           <div class="stage-control-divider"></div>
           <div class="stage-control-row stage-control-nav">
             <a href="/" data-route="/" class="stage-control-btn stage-control-back"><span class="material-icons">arrow_back</span> Back to Setlists</a>
+            ${(typeof ACCESS === 'undefined' || ACCESS.canEdit())
+              ? `<a href="/${setlist.id}/edit" data-route="/${setlist.id}/edit" class="stage-control-btn stage-control-edit"><span class="material-icons">edit</span> Edit setlist</a>`
+              : ''}
           </div>
           <button type="button" class="stage-control-primary" id="btn-fullscreen"><span class="material-icons" id="btn-fullscreen-icon">fullscreen</span> <span id="btn-fullscreen-label">Enter Stage View</span></button>
           <p class="stage-wake-status" id="stage-wake-status" aria-live="polite"></p>

@@ -465,12 +465,46 @@ body.builder-view #main-content {
   margin-top: 1rem;
   width: 100%;
 }
+.setlists-card-actions .btn-start {
+  margin-top: 0;
+  width: auto;
+  flex: 1;
+  min-width: 8rem;
+}
+.setlists-card-actions .btn-edit-setlist {
+  flex: 0 0 auto;
+}
 .btn-start:hover {
   background: #a82828;
   color: white;
 }
 .btn-start .material-icons {
   font-size: 1.5rem;
+}
+.setlists-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  align-items: center;
+}
+.btn-edit-setlist {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.95rem;
+  background: transparent;
+}
+.btn-edit-setlist:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+.btn-edit-setlist .material-icons {
+  font-size: 1.15rem;
 }
 .setlists-row {
   display: flex;
@@ -1049,6 +1083,12 @@ body.builder-view #main-content {
   justify-content: center;
   gap: 0.75rem;
   flex-wrap: wrap;
+}
+.stage-control-nav {
+  justify-content: space-between;
+}
+.stage-control-edit {
+  margin-left: auto;
 }
 
 .stage-control-btn {

@@ -3,13 +3,16 @@
  */
 
 const ARCHIVE = (function() {
-  let documentClickCleanup = null;
+  let renderController = null;
 
   async function render(container, { navigate }) {
-    if (documentClickCleanup) {
-      documentClickCleanup();
-      documentClickCleanup = null;
+    if (renderController) {
+      renderController.abort();
+      renderController = null;
     }
+    renderController = new AbortController();
+    const { signal } = renderController;
+
     container.innerHTML = '<p>Loading...</p>';
 
     let songs, setlists;
@@ -72,7 +75,10 @@ const ARCHIVE = (function() {
         <div class="setlists-card">
           <div class="setlists-card-date">${formatDate(tonight.date)}</div>
           <div class="setlists-card-venue">${tonight.venue || '—'}</div>
-          <a href="/${tonight.id}" class="btn-start" data-route="/${tonight.id}"><span class="material-icons">play_arrow</span> Start set</a>
+          <div class="setlists-card-actions">
+            <a href="/${tonight.id}" class="btn-start" data-route="/${tonight.id}"><span class="material-icons">play_arrow</span> Start set</a>
+            ${canEdit ? `<a href="/${tonight.id}/edit" class="btn-edit-setlist" data-route="/${tonight.id}/edit"><span class="material-icons">edit</span> Edit</a>` : ''}
+          </div>
         </div>
       `;
     }
@@ -81,21 +87,22 @@ const ARCHIVE = (function() {
 
     setlists.forEach(sl => {
       const songCount = sl.song_ids.filter(id => songMap[id]).length;
+      const id = String(sl.id);
       html += `
-        <div class="setlists-row" data-id="${sl.id}" tabindex="0" role="button">
+        <div class="setlists-row" data-id="${id}" tabindex="0" role="button">
           <div class="setlists-row-main">
             <div class="setlists-row-date">${formatShortDate(sl.date)}</div>
             <div class="setlists-row-venue">${sl.venue || '—'}</div>
             <div class="setlists-row-meta">${songCount} song${songCount !== 1 ? 's' : ''}</div>
           </div>
           <span class="setlists-row-chevron" aria-hidden="true"><span class="material-icons">chevron_right</span></span>
-          <button type="button" class="setlists-row-overflow icon-btn" aria-label="More actions" aria-haspopup="true" aria-expanded="false" data-id="${sl.id}"><span class="material-icons">more_horiz</span></button>
+          <button type="button" class="setlists-row-overflow icon-btn" aria-label="More actions" aria-haspopup="true" aria-expanded="false" data-id="${id}"><span class="material-icons">more_horiz</span></button>
           <div class="setlists-overflow-menu" role="menu" aria-label="Setlist actions">
-            <button type="button" role="menuitem" data-action="open" data-id="${sl.id}"><span class="material-icons">play_arrow</span> Open</button>
-            ${canEdit ? `<button type="button" role="menuitem" data-action="edit" data-id="${sl.id}"><span class="material-icons">edit</span> Edit</button>
-            <button type="button" role="menuitem" data-action="dup" data-id="${sl.id}"><span class="material-icons">content_copy</span> Duplicate</button>` : ''}
-            <button type="button" role="menuitem" data-action="pdf" data-id="${sl.id}"><span class="material-icons">picture_as_pdf</span> Export PDF</button>
-            ${canEdit ? `<button type="button" role="menuitem" data-action="del" data-id="${sl.id}" class="overflow-menu-item-danger"><span class="material-icons">delete</span> Delete</button>` : ''}
+            <button type="button" role="menuitem" data-action="open" data-id="${id}"><span class="material-icons">play_arrow</span> Open</button>
+            ${canEdit ? `<button type="button" role="menuitem" data-action="edit" data-id="${id}"><span class="material-icons">edit</span> Edit</button>
+            <button type="button" role="menuitem" data-action="dup" data-id="${id}"><span class="material-icons">content_copy</span> Duplicate</button>` : ''}
+            <button type="button" role="menuitem" data-action="pdf" data-id="${id}"><span class="material-icons">picture_as_pdf</span> Export PDF</button>
+            ${canEdit ? `<button type="button" role="menuitem" data-action="del" data-id="${id}" class="overflow-menu-item-danger"><span class="material-icons">delete</span> Delete</button>` : ''}
           </div>
         </div>
       `;
@@ -110,72 +117,90 @@ const ARCHIVE = (function() {
       });
     }
 
-    container.addEventListener('click', (e) => {
-      const overflowBtn = e.target.closest('.setlists-row-overflow');
-      const menu = e.target.closest('.setlists-overflow-menu');
-      const menuItem = e.target.closest('.setlists-overflow-menu [role="menuitem"]');
-      const row = e.target.closest('.setlists-row');
+    container.addEventListener(
+      'click',
+      (e) => {
+        const overflowBtn = e.target.closest('.setlists-row-overflow');
+        const menu = e.target.closest('.setlists-overflow-menu');
+        const menuItem = e.target.closest('.setlists-overflow-menu [role="menuitem"]');
+        const row = e.target.closest('.setlists-row');
 
-      if (overflowBtn) {
-        e.preventDefault();
-        e.stopPropagation();
-        const r = overflowBtn.closest('.setlists-row');
-        const m = r?.querySelector('.setlists-overflow-menu');
-        const isOpen = m?.classList.contains('is-open');
-        closeAllOverflowMenus();
-        if (m && !isOpen) {
-          m.classList.add('is-open');
-          overflowBtn.setAttribute('aria-expanded', 'true');
-        }
-        return;
-      }
-
-      if (menuItem) {
-        e.preventDefault();
-        e.stopPropagation();
-        closeAllOverflowMenus();
-        const id = menuItem.dataset.id;
-        const action = menuItem.dataset.action;
-        const sl = setlists.find(s => s.id === id);
-        if (action === 'open') navigate('/' + id);
-        else if (action === 'edit') navigate('/' + id + '/edit');
-        else if (action === 'dup') navigate('/new?clone=' + id);
-        else if (action === 'del') {
-          if (confirm('Delete this setlist?')) {
-            /* TODO: delete */
-          }
-        } else if (action === 'pdf' && sl && typeof PDF !== 'undefined') {
-          const setlistWithSongs = { ...sl, songs: sl.song_ids.map(i => songMap[i]).filter(Boolean) };
-          PDF.download(setlistWithSongs);
-        }
-        return;
-      }
-
-      if (menu) return;
-
-      if (row) {
-        e.preventDefault();
-        const openMenu = container.querySelector('.setlists-overflow-menu.is-open');
-        if (openMenu) {
+        if (overflowBtn) {
+          e.preventDefault();
+          e.stopPropagation();
+          const r = overflowBtn.closest('.setlists-row');
+          const m = r?.querySelector('.setlists-overflow-menu');
+          const isOpen = m?.classList.contains('is-open');
           closeAllOverflowMenus();
-        } else {
-          navigate('/' + row.dataset.id);
+          if (m && !isOpen) {
+            m.classList.add('is-open');
+            overflowBtn.setAttribute('aria-expanded', 'true');
+          }
+          return;
         }
-      }
-    });
 
-    document.addEventListener('click', closeAllOverflowMenus);
-    documentClickCleanup = () => document.removeEventListener('click', closeAllOverflowMenus);
-
-    container.addEventListener('keydown', (e) => {
-      const row = e.target.closest('.setlists-row');
-      if (row && (e.key === 'Enter' || e.key === ' ')) {
-        e.preventDefault();
-        if (!e.target.closest('.setlists-row-overflow, .setlists-overflow-menu')) {
-          navigate('/' + row.dataset.id);
+        if (menuItem) {
+          e.preventDefault();
+          e.stopPropagation();
+          closeAllOverflowMenus();
+          const id = menuItem.dataset.id;
+          const action = menuItem.dataset.action;
+          const sl = setlists.find(s => String(s.id) === String(id));
+          if (action === 'open') navigate('/' + id);
+          else if (action === 'edit') navigate('/' + id + '/edit');
+          else if (action === 'dup') navigate('/new?clone=' + id);
+          else if (action === 'del') {
+            if (confirm('Delete this setlist?')) {
+              /* TODO: delete */
+            }
+          } else if (action === 'pdf' && sl && typeof PDF !== 'undefined') {
+            const setlistWithSongs = { ...sl, songs: sl.song_ids.map(i => songMap[i]).filter(Boolean) };
+            PDF.download(setlistWithSongs);
+          }
+          return;
         }
-      }
-    });
+
+        if (menu) {
+          e.stopPropagation();
+          return;
+        }
+
+        if (row) {
+          e.preventDefault();
+          const openMenu = container.querySelector('.setlists-overflow-menu.is-open');
+          if (openMenu) {
+            closeAllOverflowMenus();
+          } else {
+            navigate('/' + row.dataset.id);
+          }
+        }
+      },
+      { signal }
+    );
+
+    // Close menus on outside click — ignore the overflow control itself
+    document.addEventListener(
+      'click',
+      (e) => {
+        if (e.target.closest('.setlists-row-overflow, .setlists-overflow-menu')) return;
+        closeAllOverflowMenus();
+      },
+      { signal }
+    );
+
+    container.addEventListener(
+      'keydown',
+      (e) => {
+        const row = e.target.closest('.setlists-row');
+        if (row && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          if (!e.target.closest('.setlists-row-overflow, .setlists-overflow-menu')) {
+            navigate('/' + row.dataset.id);
+          }
+        }
+      },
+      { signal }
+    );
   }
 
   return { render };

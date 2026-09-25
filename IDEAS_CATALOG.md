@@ -170,6 +170,7 @@ A dedicated mode for drummers or MDs with advanced live features, powered by int
 
 | # | Idea | Effort | Impact | Notes |
 |---|------|--------|--------|-------|
+| 0 | **Fix setlist ⋯ menu + edit path** | Low | High | Done Sep 2026 — overflow handlers stacked on re-render; menu appeared dead. Edit via ⋯ and stage “Edit setlist”. |
 | 1 | Remove PDF from stage view | Low | Medium | Quick UX win |
 | 2 | Awake toggle prominent in stage view | Low | High | Drummer need |
 | 3 | Add song: stage name only | Low | Medium | Rehearsal workflow |
@@ -178,6 +179,7 @@ A dedicated mode for drummers or MDs with advanced live features, powered by int
 | 6 | Stage mode + click from BPM | High | High | New mode, Web Audio, schema |
 | 7 | MD role + settings | Medium | Medium | After Drive folder auth |
 | 8 | Tempo/OnSong integrations | High | Medium | External APIs |
+| 9 | Delete setlist (⋯ menu) | Low | Medium | UI confirms; backend TODO still stubbed |
 
 ---
 
