@@ -20,12 +20,12 @@ const CONFIG = {
 function doPost(e) {
   let result = { ok: false, error: 'Invalid request' };
   try {
-    const raw = e.postData && e.postData.contents ? e.postData.contents : (e.parameter && e.parameter.data ? e.parameter.data : null);
+    const raw = getRequestBody(e);
     if (!raw) {
       result = { ok: false, error: 'Missing request body' };
       return response(result);
     }
-    const body = JSON.parse(raw);
+    const body = typeof raw === 'string' ? JSON.parse(raw) : raw;
     const { action, token } = body;
 
     // Public: exchange browser OAuth code for access token (needs Script Property OAUTH_CLIENT_SECRET)
@@ -64,6 +64,19 @@ function doPost(e) {
     result = { ok: false, error: err.message || 'Server error' };
   }
   return response(result);
+}
+
+/** Browser posts URLSearchParams { data: "<json>" }; prefer e.parameter.data over raw postData. */
+function getRequestBody(e) {
+  if (e.parameter && e.parameter.data) return e.parameter.data;
+  if (e.postData && e.postData.contents) {
+    var contents = e.postData.contents;
+    if (contents.indexOf('data=') === 0) {
+      return decodeURIComponent(contents.substring(5).replace(/\+/g, ' '));
+    }
+    return contents;
+  }
+  return null;
 }
 
 /**
