@@ -63,12 +63,13 @@ const CATALOG_METADATA = (function() {
   };
 
   const FILTER_PRESETS = [
+    { id: 'live-only', label: 'Live only', fn: s => s.active },
+    { id: 'inactive', label: 'Inactive (catalog-only)', fn: s => !s.active },
     { id: 'missing-required', label: 'Missing required metadata', fn: s => !s.title || !s.primary_artist },
     { id: 'missing-isrc', label: 'Missing ISRC', fn: s => !s.isrc },
     { id: 'no-artwork', label: 'No artwork', fn: s => !s.artwork },
     { id: 'explicit-not-set', label: 'Explicit not set', fn: s => s.explicit == null },
-    { id: 'draft', label: 'Draft', fn: s => s.release_status === 'draft' },
-    { id: 'inactive', label: 'Inactive', fn: s => !s.active }
+    { id: 'draft', label: 'Draft', fn: s => s.release_status === 'draft' }
   ];
 
   const DRAWER_TABS = [

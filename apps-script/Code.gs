@@ -57,6 +57,8 @@ function doPost(e) {
       result = importBandcampMetadata(body.rows);
     } else if (action === 'saveNewSong') {
       result = saveNewSong(body.song);
+    } else if (action === 'deleteSetlist') {
+      result = deleteSetlist(body.id);
     } else {
       result = { ok: false, error: 'Unknown action' };
     }
@@ -280,6 +282,24 @@ function saveSetlist(setlist) {
   }
 }
 
+function deleteSetlist(id) {
+  if (id == null || String(id).trim() === '') {
+    return { ok: false, error: 'Missing setlist id' };
+  }
+  const ss = SpreadsheetApp.openById(CONFIG.SETLISTS_SHEET_ID);
+  const sheet = ss.getSheetByName(CONFIG.SETLISTS_SHEET_NAME) || ss.getSheets()[0];
+  const data = sheet.getDataRange().getValues();
+  const idCol = 0;
+  const want = String(id);
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][idCol]) === want) {
+      sheet.deleteRow(i + 1);
+      return { ok: true, id: want };
+    }
+  }
+  return { ok: false, error: 'Setlist not found' };
+}
+
 function saveCatalogDisplayTitle(songId, displayTitle) {
   const ss = SpreadsheetApp.openById(CONFIG.SONGS_SHEET_ID);
   const sheet = ss.getSheetByName(CONFIG.SONGS_SHEET_NAME) || ss.getSheets()[0];
@@ -358,8 +378,11 @@ function saveNewSong(song) {
     var id = parseInt(data[i][0], 10);
     if (!isNaN(id) && id >= nextId) nextId = id + 1;
   }
-  const title = song.title || '';
-  const displayTitle = (song.display_title || song.title || '').trim() || title;
+  const displayTitle = String(song.display_title || song.title || '').trim();
+  if (!displayTitle) {
+    return { ok: false, error: 'Stage name (display_title) is required' };
+  }
+  const title = String(song.title || displayTitle).trim() || displayTitle;
   const album = song.album || '';
   const year = song.year != null && song.year !== '' ? song.year : '';
   const notes = song.notes || '';

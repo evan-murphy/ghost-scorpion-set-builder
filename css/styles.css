@@ -171,7 +171,7 @@ body.role-viewer [data-requires-edit] {
   color: var(--text);
 }
 
-/* Nav tabs (Setlists | Catalog) */
+/* Nav tabs (Setlists | Add song) */
 .nav-tabs {
   display: flex;
   gap: 1rem;
@@ -1159,7 +1159,24 @@ body.builder-view #main-content {
   min-height: 2.7em;
 }
 
-/* More menu */
+/* Primary wake lock control (stage view) */
+.stage-control-wake-primary {
+  width: 100%;
+  justify-content: center;
+  padding: 0.85rem 1.25rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+
+.stage-control-wake-primary .stage-control-toggle-label {
+  font-size: 1rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+/* More menu (legacy; unused when empty) */
 .stage-control-more-wrap {
   position: relative;
 }
@@ -1457,4 +1474,128 @@ body.builder-view #main-content {
   color: black;
   font-family: 'Bebas Neue', sans-serif;
   box-sizing: border-box;
+}
+
+/* Add song — one job, editors only */
+.add-song-page {
+  max-width: 28rem;
+  margin: 0 auto;
+  padding: 1.75rem 1.25rem 3rem;
+}
+
+.add-song-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 6vw, 2.75rem);
+  letter-spacing: 0.02em;
+  margin: 0 0 0.5rem;
+  color: var(--text);
+}
+
+.add-song-lede {
+  margin: 0 0 1.75rem;
+  font-size: 1.05rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.add-song-banner {
+  margin-bottom: 1.25rem;
+  padding: 1rem 1.1rem;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 8px;
+}
+
+.add-song-banner p {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+}
+
+.add-song-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.add-song-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.add-song-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.95rem 1rem;
+  font-size: 1.35rem;
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 2px solid rgba(0, 0, 0, 0.18);
+  border-radius: 10px;
+  background: #fff;
+  color: #121212;
+}
+
+.add-song-input:focus {
+  outline: none;
+  border-color: #121212;
+}
+
+.add-song-submit {
+  margin-top: 0.35rem;
+  padding: 1rem 1.25rem;
+  border: none;
+  border-radius: 10px;
+  background: #121212;
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  cursor: pointer;
+  min-height: 48px;
+}
+
+.add-song-submit:hover:not(:disabled) {
+  background: #2a2a2a;
+}
+
+.add-song-submit:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.add-song-status {
+  min-height: 1.5em;
+  margin: 1rem 0 0;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+}
+
+.add-song-status strong {
+  color: var(--text);
+}
+
+.add-song-advanced {
+  margin: 2.5rem 0 0;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.add-song-advanced a {
+  color: #121212;
+  font-weight: 600;
+}
+
+body.archive-view .add-song-advanced a {
+  color: #121212;
+}
+
+/* Nav tabs (Setlists | Add song) */
+.nav-tabs a[hidden] {
+  display: none !important;
 }

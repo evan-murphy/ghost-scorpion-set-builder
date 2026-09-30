@@ -49,8 +49,9 @@ const ARCHIVE = (function() {
       container.innerHTML = `
         <div class="setlists-empty">
           <h2 class="setlists-empty-title">No setlists yet</h2>
-          <p class="setlists-empty-text">${canEdit ? 'Add songs to your catalog first, then create your first setlist.' : 'No setlists available yet.'}</p>
-          ${canEdit ? '<a href="/new" data-route="/new" class="btn-start"><span class="material-icons">add</span> Create your first setlist</a>' : ''}
+          <p class="setlists-empty-text">${canEdit ? 'Add a song by stage name, then create your first setlist.' : 'No setlists available yet.'}</p>
+          ${canEdit ? '<a href="/add-song" data-route="/add-song" class="btn-start"><span class="material-icons">music_note</span> Add song</a>' : ''}
+          ${canEdit ? '<a href="/new" data-route="/new" class="btn-edit-setlist" style="margin-left:0.5rem"><span class="material-icons">add</span> Create setlist</a>' : ''}
         </div>
       `;
       return;
@@ -150,9 +151,16 @@ const ARCHIVE = (function() {
           else if (action === 'edit') navigate('/' + id + '/edit');
           else if (action === 'dup') navigate('/new?clone=' + id);
           else if (action === 'del') {
-            if (confirm('Delete this setlist?')) {
-              /* TODO: delete */
-            }
+            if (!confirm('Delete this setlist? This cannot be undone.')) return;
+            (async () => {
+              try {
+                const token = typeof AUTH !== 'undefined' && AUTH.isSignedIn() ? AUTH.getToken() : null;
+                await DATA.deleteSetlist(id, token);
+                await render(container, { navigate });
+              } catch (err) {
+                alert(err.message || 'Delete failed');
+              }
+            })();
           } else if (action === 'pdf' && sl && typeof PDF !== 'undefined') {
             const setlistWithSongs = { ...sl, songs: sl.song_ids.map(i => songMap[i]).filter(Boolean) };
             PDF.download(setlistWithSongs);

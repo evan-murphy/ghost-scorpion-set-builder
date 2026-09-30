@@ -431,19 +431,6 @@ const CATALOG = (function() {
     `;
 
     const pending = typeof PENDING_SONG !== 'undefined' ? PENDING_SONG.get() : null;
-    const addSongForm = canEdit ? `
-      <div class="catalog-add-song">
-        <h2 style="font-family: var(--font-display); font-size: 1rem; margin-bottom: 0.5rem;">Add new song</h2>
-        <div class="catalog-add-form">
-          <div class="catalog-add-field"><label>Title</label><input type="text" id="new-song-title" placeholder="Canonical title"></div>
-          <div class="catalog-add-field"><label>Display Title</label><input type="text" id="new-song-display" placeholder="Optional"></div>
-          <div class="catalog-add-field"><label>Album</label><input type="text" id="new-song-album" placeholder="e.g. Acid Chalet"></div>
-          <div class="catalog-add-field"><label>Year</label><input type="number" id="new-song-year" placeholder="e.g. 2025" min="1900" max="2100"></div>
-          <div class="catalog-add-field catalog-add-check"><input type="checkbox" id="new-song-active" checked><label for="new-song-active">Active</label></div>
-          <button type="button" class="btn-stage" id="stage-song-btn">Stage song</button>
-        </div>
-      </div>
-    ` : '';
     const stagedBlock = canEdit && pending ? `
       <div class="catalog-staged">
         <span class="catalog-staged-title">${escapeHtml(pending.display_title || pending.title || 'Untitled')}</span>
@@ -499,10 +486,12 @@ const CATALOG = (function() {
         </div>
       </div>
       ${authBanner}
+      ${canEdit ? `
       <div style="margin: 0 1.5rem 1rem; display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-start;">
-        ${addSongForm}
+        <p class="catalog-add-redirect">Need a new track? <a href="/add-song" data-route="/add-song">Add song</a> by stage name.</p>
         ${stagedBlock}
       </div>
+      ` : ''}
       ${filterBar}
       <div class="catalog-library">
         ${tableWrap}
@@ -518,19 +507,6 @@ const CATALOG = (function() {
         if (AUTH.isSignedIn()) { unsub && unsub(); render(container, { navigate }); }
       });
     }
-
-    container.querySelector('#stage-song-btn')?.addEventListener('click', () => {
-      const title = container.querySelector('#new-song-title')?.value?.trim();
-      const display = container.querySelector('#new-song-display')?.value?.trim();
-      const album = container.querySelector('#new-song-album')?.value?.trim();
-      const yearVal = container.querySelector('#new-song-year')?.value;
-      const active = container.querySelector('#new-song-active')?.checked;
-      if (!title && !display) return;
-      if (typeof PENDING_SONG !== 'undefined') {
-        PENDING_SONG.set({ title: title || display, display_title: display || title, album: album || '', year: yearVal ? parseInt(yearVal, 10) : null, active: active !== false });
-      }
-      render(container, { navigate });
-    });
 
     container.querySelector('#save-staged-btn')?.addEventListener('click', async () => {
       const p = typeof PENDING_SONG !== 'undefined' ? PENDING_SONG.get() : null;

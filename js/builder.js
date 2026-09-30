@@ -616,24 +616,37 @@ const BUILDER = (function() {
     if (btn) btn.disabled = true;
     try {
       let resultId = state.id;
-      // Always save to local storage first (works without Sheets/auth)
-      if (typeof LOCAL_SETLIST_STORE !== 'undefined') {
-        const localResult = LOCAL_SETLIST_STORE.save(state);
-        resultId = localResult.id;
-      }
-      // Sheets sync only for Editors on ACCESS_SHEET_ID
       const canEdit = typeof ACCESS === 'undefined' || ACCESS.canEdit();
       const token = typeof AUTH !== 'undefined' ? AUTH.getToken() : null;
       const url = (CONFIG.APPS_SCRIPT_PROXY_URL || CONFIG.APPS_SCRIPT_URL) || '';
-      if (canEdit && url && token) {
+      const canSyncSheet = !!(canEdit && url && token);
+
+      // Outbox: keep a local copy until the shared Sheet confirms the save.
+      if (typeof LOCAL_SETLIST_STORE !== 'undefined') {
+        const localResult = LOCAL_SETLIST_STORE.save(state);
+        resultId = localResult.id;
+        state.id = resultId;
+      }
+
+      if (canSyncSheet) {
         try {
           const sheetsResult = await DATA.saveSetlist(state, token);
           resultId = sheetsResult.id || resultId;
         } catch (e) {
-          // Already saved locally; Sheets failed — continue (see console when debugging)
-          console.warn('Setlist saved locally; Google Sheets sync failed:', e?.message || e);
+          throw new Error(
+            'Saved on this device only — Google Sheets sync failed: ' +
+              (e?.message || e) +
+              '. Other devices will not see this setlist until sync succeeds.'
+          );
         }
+      } else if (!token) {
+        // Unsigned local save — intentional offline path
+      } else if (!canEdit) {
+        throw new Error('You need Edit access on the setlists spreadsheet to save shared setlists.');
+      } else if (!url) {
+        throw new Error('Save endpoint is not configured.');
       }
+
       if (!resultId) throw new Error('Save requires auth or local storage');
       if (typeof DRAFT_STORE !== 'undefined') DRAFT_STORE.clear(context);
       closeSheets();

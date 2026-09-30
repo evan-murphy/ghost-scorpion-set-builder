@@ -160,13 +160,31 @@ const DATA = (function() {
     }));
   }
 
+  /**
+   * Shared Sheet is source of truth for synced ids.
+   * Local storage is an outbox: pendingSync (or local-only) entries override until flushed.
+   */
   function mergeWithLocalSetlists(remoteSetlists) {
     if (typeof LOCAL_SETLIST_STORE === 'undefined') return remoteSetlists;
     const local = LOCAL_SETLIST_STORE.getAll();
     if (local.length === 0) return remoteSetlists;
     const byId = new Map(remoteSetlists.map(s => [String(s.id), s]));
-    local.forEach(s => byId.set(String(s.id), s));
+    local.forEach(s => {
+      const id = String(s.id);
+      if (!byId.has(id) || s.pendingSync) byId.set(id, s);
+    });
     return Array.from(byId.values());
+  }
+
+  /** Drop local copies that are already on the Sheet and not waiting to sync. */
+  function pruneLocalSetlistsPresentOnRemote(remoteSetlists) {
+    if (typeof LOCAL_SETLIST_STORE === 'undefined') return;
+    const remoteIds = new Set(remoteSetlists.map(s => String(s.id)));
+    LOCAL_SETLIST_STORE.getAll().forEach(s => {
+      if (remoteIds.has(String(s.id)) && !s.pendingSync) {
+        LOCAL_SETLIST_STORE.remove(s.id);
+      }
+    });
   }
 
   async function fetchSetlists() {
@@ -194,6 +212,7 @@ const DATA = (function() {
     const afterSheetIds = remote.map(s => s.id);
     remote = mergeShippedSetlistsMissingFromRemote(remote);
     const afterShippedIds = remote.map(s => s.id);
+    if (!useMock()) pruneLocalSetlistsPresentOnRemote(remote);
     const final = mergeWithLocalSetlists(remote);
     if (useDebug()) {
       let localIds = [];
@@ -293,7 +312,7 @@ const DATA = (function() {
     const hasAuth = url && token;
     if (!hasAuth && typeof LOCAL_SETLIST_STORE !== 'undefined') {
       const result = LOCAL_SETLIST_STORE.save(setlist);
-      return { ok: true, id: result.id };
+      return { ok: true, id: result.id, localOnly: true };
     }
     if (!hasAuth) throw new Error('Save requires auth or local storage');
     const payload = {
@@ -316,7 +335,47 @@ const DATA = (function() {
       method: 'POST',
       body: new URLSearchParams({ data: JSON.stringify(payload) })
     });
-    return handleSaveResponse(res, { id: setlist.id });
+    const data = await handleSaveResponse(res, { id: setlist.id });
+    const syncedId = data.id || setlist.id;
+    if (syncedId && typeof LOCAL_SETLIST_STORE !== 'undefined') {
+      LOCAL_SETLIST_STORE.remove(syncedId);
+    }
+    return data;
+  }
+
+  /**
+   * Push pending/local-only setlists up via Apps Script.
+   * Call after an editor signs in so other devices see the same data.
+   */
+  async function flushPendingLocalSetlists(token) {
+    if (typeof LOCAL_SETLIST_STORE === 'undefined') return { flushed: 0, failed: 0 };
+    const url = getSaveUrl();
+    if (!url || !token || useMock()) return { flushed: 0, failed: 0 };
+
+    let remoteIds = new Set();
+    try {
+      const rows = await fetchSheetValues(CONFIG.SETLISTS_SHEET_ID, CONFIG.SETLISTS_RANGE, 'Setlists');
+      remoteIds = new Set(rows.map(row => String(row[0])));
+    } catch (e) {
+      console.warn('flushPendingLocalSetlists: could not read Sheet', e?.message || e);
+      return { flushed: 0, failed: 0 };
+    }
+
+    const pending = LOCAL_SETLIST_STORE.getAll().filter(
+      s => s.pendingSync || !remoteIds.has(String(s.id))
+    );
+    let flushed = 0;
+    let failed = 0;
+    for (const setlist of pending) {
+      try {
+        await saveSetlist(setlist, token);
+        flushed += 1;
+      } catch (e) {
+        failed += 1;
+        console.warn('flushPendingLocalSetlists: failed for', setlist.id, e?.message || e);
+      }
+    }
+    return { flushed, failed };
   }
 
   async function saveCatalogDisplayTitle(songId, displayTitle, token) {
@@ -371,12 +430,14 @@ const DATA = (function() {
   async function saveNewSong(song, token) {
     const url = getSaveUrl();
     if (!url || !token) throw new Error('Save requires auth');
+    const displayTitle = String(song.display_title || song.title || '').trim();
+    if (!displayTitle) throw new Error('Stage name is required');
     const payload = {
       action: 'saveNewSong',
       token,
       song: {
-        title: song.title || '',
-        display_title: song.display_title || song.title || '',
+        title: String(song.title || displayTitle).trim() || displayTitle,
+        display_title: displayTitle,
         album: song.album || '',
         year: song.year != null ? song.year : null,
         notes: song.notes || '',
@@ -390,6 +451,40 @@ const DATA = (function() {
     return handleSaveResponse(res, {});
   }
 
+  async function deleteSetlist(id, token) {
+    const idStr = String(id || '');
+    if (!idStr) throw new Error('Missing setlist id');
+    const url = getSaveUrl();
+    const hasAuth = !!(url && token);
+    const localOnly = typeof LOCAL_SETLIST_STORE !== 'undefined' && !!LOCAL_SETLIST_STORE.getById(idStr);
+
+    if (!hasAuth) {
+      if (localOnly) {
+        LOCAL_SETLIST_STORE.remove(idStr);
+        return { ok: true, id: idStr };
+      }
+      throw new Error('Delete requires sign-in');
+    }
+
+    const payload = { action: 'deleteSetlist', token, id: idStr };
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        body: new URLSearchParams({ data: JSON.stringify(payload) })
+      });
+      const data = await handleSaveResponse(res, { id: idStr });
+      if (typeof LOCAL_SETLIST_STORE !== 'undefined') LOCAL_SETLIST_STORE.remove(idStr);
+      return data;
+    } catch (err) {
+      // Local-only setlists never hit the sheet; treat as success after local remove.
+      if (localOnly && /not found/i.test(err.message || '')) {
+        LOCAL_SETLIST_STORE.remove(idStr);
+        return { ok: true, id: idStr };
+      }
+      throw err;
+    }
+  }
+
   return {
     fetchSongs,
     fetchSetlists,
@@ -397,10 +492,12 @@ const DATA = (function() {
     getSetlistById,
     normalizeTrack,
     saveSetlist,
+    flushPendingLocalSetlists,
     saveCatalogDisplayTitle,
     saveCatalogMetadata,
     importBandcampMetadata,
     saveNewSong,
+    deleteSetlist,
     MOCK_SONGS,
     MOCK_SETLISTS
   };

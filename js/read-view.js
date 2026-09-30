@@ -91,22 +91,12 @@ const READ_VIEW = (function() {
               : ''}
           </div>
           <button type="button" class="stage-control-primary" id="btn-fullscreen"><span class="material-icons" id="btn-fullscreen-icon">fullscreen</span> <span id="btn-fullscreen-label">Enter Stage View</span></button>
+          <label class="stage-control-toggle stage-control-wake-primary">
+            <input type="checkbox" id="wake-toggle" ${typeof PWA !== 'undefined' && PWA.isWakeLockActive() ? 'checked' : ''}>
+            <span class="stage-control-toggle-slider"></span>
+            <span class="stage-control-toggle-label">Keep screen awake</span>
+          </label>
           <p class="stage-wake-status" id="stage-wake-status" aria-live="polite"></p>
-          <div class="stage-control-row stage-control-utils">
-            <div class="stage-control-more-wrap">
-              <button type="button" class="stage-control-btn stage-control-more" id="btn-more" aria-haspopup="true" aria-expanded="false"><span class="material-icons">more_horiz</span> More</button>
-              <div class="stage-control-more-menu" id="more-menu" aria-hidden="true">
-                <div class="stage-control-more-item">
-                  <label class="stage-control-toggle">
-                    <input type="checkbox" id="wake-toggle" ${typeof PWA !== 'undefined' && PWA.isWakeLockActive() ? 'checked' : ''}>
-                    <span class="stage-control-toggle-slider"></span>
-                    <span class="stage-control-toggle-label">Keep screen awake</span>
-                  </label>
-                </div>
-                <button type="button" class="stage-control-more-item stage-control-export-pdf" data-id="${setlist.id}"><span class="material-icons">description</span> Export PDF</button>
-              </div>
-            </div>
-          </div>
         </div>
         </div>
       </div>
@@ -162,27 +152,6 @@ const READ_VIEW = (function() {
       { signal }
     );
 
-    const moreBtn = document.getElementById('btn-more');
-    const moreMenu = document.getElementById('more-menu');
-    if (moreBtn && moreMenu) {
-      moreBtn.addEventListener(
-        'click',
-        (e) => {
-          e.stopPropagation();
-          const isHidden = moreMenu.getAttribute('aria-hidden') === 'true';
-          moreMenu.setAttribute('aria-hidden', isHidden ? 'false' : 'true');
-          moreBtn.setAttribute('aria-expanded', isHidden);
-        },
-        { signal }
-      );
-      const closeMore = () => {
-        moreMenu.setAttribute('aria-hidden', 'true');
-        moreBtn?.setAttribute('aria-expanded', 'false');
-      };
-      document.addEventListener('click', closeMore, { signal });
-      moreMenu.addEventListener('click', (e) => e.stopPropagation(), { signal });
-    }
-
     const wakeToggle = document.getElementById('wake-toggle');
     if (wakeToggle && typeof PWA !== 'undefined') {
       wakeToggle.addEventListener(
@@ -194,21 +163,6 @@ const READ_VIEW = (function() {
             await PWA.releaseWakeLock();
           }
           refreshStageStatus(wakeStatusEl);
-        },
-        { signal }
-      );
-    }
-
-    const pdfBtn = container.querySelector('.stage-control-export-pdf');
-    if (pdfBtn && typeof PDF !== 'undefined') {
-      pdfBtn.addEventListener(
-        'click',
-        (e) => {
-          e.stopPropagation();
-          const sl = { ...setlist, songs: setlist.song_ids.map(i => songMap[i]).filter(Boolean) };
-          PDF.download(sl);
-          if (moreMenu) moreMenu.setAttribute('aria-hidden', 'true');
-          if (moreBtn) moreBtn.setAttribute('aria-expanded', 'false');
         },
         { signal }
       );

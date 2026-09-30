@@ -35,7 +35,9 @@ const LOCAL_SETLIST_STORE = (function() {
       show_venue: setlist.show_venue === true,
       logo_variant: setlist.logo_variant || 'black',
       notes: setlist.notes || '',
-      created_at: setlist.created_at || new Date().toISOString()
+      created_at: setlist.created_at || new Date().toISOString(),
+      // Outbox flag: prefer this copy until Google Sheets confirms the save.
+      pendingSync: setlist.pendingSync !== false
     };
     const idx = list.findIndex(s => String(s.id) === String(payload.id));
     if (idx >= 0) {

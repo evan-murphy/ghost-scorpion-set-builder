@@ -11,7 +11,7 @@ const CATALOG_PREFS = (function() {
     columns: null,
     sortKey: 'display_title',
     sortAsc: true,
-    activeFilter: null,
+    activeFilter: 'live-only',
     savedFilters: []
   };
 

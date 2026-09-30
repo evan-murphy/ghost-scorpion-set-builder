@@ -32,6 +32,7 @@
     if (path === '/' || path === '') return { view: 'archive' };
     if (path === '/new') return { view: 'builder', id: null };
     if (path === '/catalog') return { view: 'catalog' };
+    if (path === '/add-song') return { view: 'add-song' };
 
     const editMatch = path.match(/^\/([^/]+)\/edit$/);
     if (editMatch) return { view: 'builder', id: editMatch[1] };
@@ -55,12 +56,14 @@
     document.body.classList.toggle('role-editor', canEdit);
     const btnNew = document.getElementById('btn-new-setlist');
     if (btnNew) btnNew.style.display = canEdit ? '' : 'none';
+    const navAdd = document.querySelector('.nav-add-song');
+    if (navAdd) navAdd.hidden = !canEdit;
   }
 
   function renderGate({ mode, message }) {
     gatePassed = false;
     document.body.classList.add('access-gate');
-    document.body.classList.remove('stage-view', 'builder-view', 'archive-view', 'catalog-view', 'role-viewer', 'role-editor');
+    document.body.classList.remove('stage-view', 'builder-view', 'archive-view', 'catalog-view', 'add-song-view', 'role-viewer', 'role-editor');
     if (mainHeader) mainHeader.style.display = 'none';
     const base = getBasePath();
     const logo = base + '/assets/scorpion-white.png';
@@ -150,6 +153,22 @@
         document.body.classList.remove('access-gate');
         if (mainHeader) mainHeader.style.display = '';
         applyRoleChrome();
+
+        // Push any device-only setlists to the shared Sheet so all devices match.
+        if (state.canEdit && typeof DATA !== 'undefined' && DATA.flushPendingLocalSetlists) {
+          const token = typeof AUTH !== 'undefined' ? AUTH.getToken() : null;
+          if (token) {
+            try {
+              const flush = await DATA.flushPendingLocalSetlists(token);
+              if (flush.failed > 0) {
+                console.warn('Some local setlists could not sync to Google Sheets', flush);
+              }
+            } catch (e) {
+              console.warn('flushPendingLocalSetlists', e);
+            }
+          }
+        }
+
         renderApp();
       } finally {
         bootstrapInFlight = null;
@@ -164,14 +183,14 @@
     const route = parseRoute(path);
     const canEdit = typeof ACCESS === 'undefined' || ACCESS.canEdit();
 
-    if ((route.view === 'builder') && !canEdit) {
+    if ((route.view === 'builder' || route.view === 'add-song') && !canEdit) {
       navigate('/');
       return;
     }
 
     if (route.view === 'read') {
       document.body.classList.add('stage-view');
-      document.body.classList.remove('builder-view', 'archive-view', 'catalog-view');
+      document.body.classList.remove('builder-view', 'archive-view', 'catalog-view', 'add-song-view');
       mainHeader.style.display = 'none';
       const btnNew = document.getElementById('btn-new-setlist');
       if (btnNew) btnNew.style.display = 'none';
@@ -192,19 +211,27 @@
     const btnNew = document.getElementById('btn-new-setlist');
     const logo = mainHeader?.querySelector('.logo');
     const basePath = (typeof CONFIG !== 'undefined' && CONFIG.BASE_PATH) || '';
+    const yellowChrome = route.view === 'archive' || route.view === 'add-song';
     if (logo) {
-      logo.src = basePath + (route.view === 'archive' ? '/assets/scorpion-black.png' : '/assets/scorpion-white.png');
+      logo.src = basePath + (yellowChrome ? '/assets/scorpion-black.png' : '/assets/scorpion-white.png');
     }
 
     const navLinks = mainHeader?.querySelectorAll('.nav-tabs a');
 
     navLinks?.forEach(a => {
       const href = a.getAttribute('href');
-      a.classList.toggle('active', ((path === '/' || path === '') && href === '/') || (path === '/catalog' && href === '/catalog'));
+      const isActive =
+        ((path === '/' || path === '') && href === '/') ||
+        (path === '/add-song' && href === '/add-song') ||
+        (path === '/catalog' && href === '/catalog');
+      a.classList.toggle('active', isActive);
     });
 
     if (headerTitle) {
-      headerTitle.textContent = route.view === 'catalog' ? 'Catalog' : 'Setlists';
+      headerTitle.textContent =
+        route.view === 'catalog' ? 'Catalog' :
+        route.view === 'add-song' ? 'Add song' :
+        'Setlists';
     }
     if (btnNew) {
       btnNew.style.display = route.view === 'archive' && canEdit ? '' : 'none';
@@ -213,23 +240,27 @@
     switch (route.view) {
       case 'archive':
         document.body.classList.add('archive-view');
-        document.body.classList.remove('builder-view', 'catalog-view');
+        document.body.classList.remove('builder-view', 'catalog-view', 'add-song-view');
         if (typeof ARCHIVE !== 'undefined') ARCHIVE.render(mainContent, { navigate });
         break;
       case 'builder':
-        document.body.classList.remove('archive-view');
+        document.body.classList.remove('archive-view', 'catalog-view', 'add-song-view');
         document.body.classList.add('builder-view');
-        document.body.classList.remove('catalog-view');
         if (typeof BUILDER !== 'undefined') BUILDER.render(mainContent, route.id, { navigate });
         break;
+      case 'add-song':
+        document.body.classList.add('add-song-view', 'archive-view');
+        document.body.classList.remove('builder-view', 'catalog-view');
+        if (typeof ADD_SONG !== 'undefined') ADD_SONG.render(mainContent, { navigate });
+        break;
       case 'catalog':
-        document.body.classList.remove('archive-view');
+        document.body.classList.remove('archive-view', 'add-song-view');
         document.body.classList.add('catalog-view');
         document.body.classList.remove('builder-view');
         if (typeof CATALOG !== 'undefined') CATALOG.render(mainContent, { navigate });
         break;
       default:
-        document.body.classList.remove('archive-view', 'builder-view', 'catalog-view');
+        document.body.classList.remove('archive-view', 'builder-view', 'catalog-view', 'add-song-view');
         if (typeof ARCHIVE !== 'undefined') ARCHIVE.render(mainContent, { navigate });
     }
   }

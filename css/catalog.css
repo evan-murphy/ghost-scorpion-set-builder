@@ -695,11 +695,26 @@ body.catalog-view .catalog-add-song {
   min-width: 280px;
 }
 
+body.catalog-view .catalog-add-redirect {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+body.catalog-view .catalog-add-redirect a {
+  color: var(--accent-yellow);
+  font-weight: 500;
+}
+
 body.catalog-view .catalog-add-form {
   display: grid;
   grid-template-columns: 1fr 1fr auto;
   gap: 0.5rem 1rem;
   align-items: end;
+}
+
+body.catalog-view .catalog-add-form--minimal {
+  grid-template-columns: 1fr auto;
 }
 
 body.catalog-view .catalog-add-form .catalog-add-field {
@@ -716,7 +731,8 @@ body.catalog-view .catalog-add-form .btn-stage {
 }
 
 @media (max-width: 600px) {
-  body.catalog-view .catalog-add-form {
+  body.catalog-view .catalog-add-form,
+  body.catalog-view .catalog-add-form--minimal {
     grid-template-columns: 1fr;
   }
 }

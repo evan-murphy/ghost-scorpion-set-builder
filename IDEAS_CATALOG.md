@@ -98,49 +98,29 @@ A dedicated mode for drummers or MDs with advanced live features, powered by int
 ## 3. Stage View UX Changes
 
 ### Remove PDF Download from Stage View
-- PDF export belongs in archive/builder, not on-stage
-- Reduces clutter in stage mode
+- ✅ Done Sep 2026 — PDF export belongs in archive/builder, not on-stage
 
 ### Screen Awake Toggle
-- **Make wake lock toggle primary** on stage view
-- Currently: wake toggle is in "More" menu
-- Proposed: Awake on/off as a prominent control (drummer needs to know screen won't sleep)
+- ✅ Done Sep 2026 — Wake lock toggle is a primary control under Enter Stage View (More menu removed)
 
 ---
 
 ## 4. Catalog: Hide Non-Live Songs
 
 ### Feature
-- In catalog settings: **hide songs that are not "live"** from set builder and stage view
-- `active` column already exists (TRUE/FALSE) — used to hide from builder
-- This may be the same concept, or a new `live` / `in_rotation` flag
-- Clarify: Is `active` = "live"? Or do we need a separate "show in set builder" vs. "catalog-only" distinction?
-
-### Implementation
-- Catalog preference or filter: "Hide catalog-only songs"
-- When enabled, only `active: TRUE` (or new `live: TRUE`) appear in builder picker and stage view song list
+- ✅ Done Sep 2026 — Treat `active` = live/in rotation (no separate `live` column)
+- Builder already filters to `active: TRUE`
+- Catalog default filter: **Live only**; also **Inactive (catalog-only)**
+- Stage view still shows whatever is on the setlist (including inactive IDs already booked)
 
 ---
 
 ## 5. Add New Songs — Minimal Required Fields
 
-### Current
-- `saveNewSong` requires: title, display_title, album, year, notes, active
-- Full form in catalog
-
-### Proposed
-- **Only stage name (display_title) required** to add a new song
-- Everything else fillable later
-- Use case: Add song during rehearsal while writing; fill full metadata later
-
-### Flow
-- Catalog page: "Add song" → minimal form (stage name only)
-- Rest of fields optional, editable in track detail drawer
-
-### Schema
-- `title` can default to display_title or empty
-- `display_title` = required (stage shorthand)
-- album, year, notes, active, duration_sec, etc. = optional, nullable
+### Done Sep 2026
+- Dedicated **Add song** nav for editors (`/add-song`) — stage name only, saves live
+- Catalog demoted from primary nav; still at `/catalog` via “Advanced catalog”
+- Client + Apps Script require `display_title`; title defaults to stage name; `active: TRUE`
 
 ---
 
@@ -171,15 +151,15 @@ A dedicated mode for drummers or MDs with advanced live features, powered by int
 | # | Idea | Effort | Impact | Notes |
 |---|------|--------|--------|-------|
 | 0 | **Fix setlist ⋯ menu + edit path** | Low | High | Done Sep 2026 — overflow handlers stacked on re-render; menu appeared dead. Edit via ⋯ and stage “Edit setlist”. |
-| 1 | Remove PDF from stage view | Low | Medium | Quick UX win |
-| 2 | Awake toggle prominent in stage view | Low | High | Drummer need |
-| 3 | Add song: stage name only | Low | Medium | Rehearsal workflow |
-| 4 | Hide non-live in catalog | Low | Medium | Clarify active vs. live |
+| 1 | Remove PDF from stage view | Low | Medium | Done Sep 2026 — Export PDF removed from stage More menu; still available in archive/builder. |
+| 2 | Awake toggle prominent in stage view | Low | High | Done Sep 2026 — primary control under Enter Stage View; More menu removed. |
+| 3 | Add song: stage name only | Low | Medium | Done Sep 2026 — `/add-song` nav for editors; catalog demoted. |
+| 4 | Hide non-live in catalog | Low | Medium | Done Sep 2026 — `active` = live; default filter Live only. |
 | 5 | Save vs. Sync taxonomy | High | High | Big refactor |
 | 6 | Stage mode + click from BPM | High | High | New mode, Web Audio, schema |
 | 7 | MD role + settings | Medium | Medium | After Drive folder auth |
 | 8 | Tempo/OnSong integrations | High | Medium | External APIs |
-| 9 | Delete setlist (⋯ menu) | Low | Medium | UI confirms; backend TODO still stubbed |
+| 9 | Delete setlist (⋯ menu) | Low | Medium | Done Sep 2026 — Apps Script `deleteSetlist` + DATA + archive confirm. **Redeploy Apps Script.** |
 
 ---
 
@@ -195,7 +175,7 @@ A dedicated mode for drummers or MDs with advanced live features, powered by int
 
 ## 9. Open Questions
 
-1. **active vs. live:** Is `active` already "in rotation / show in builder"? Or do we need a separate "catalog-only" vs. "live" distinction?
+1. **active vs. live:** ✅ Resolved — `active` = live/in rotation. No separate `live` column.
 2. **Beat map format:** ~~Tempo Advance / PolyNome Pro~~ — Neither exports. Use catalog BPM for v1; DAW MIDI import possible later.
 3. **Click output:** Web Audio to device audio, or route to IEMs via? (Browser audio routing limitations)
 4. **Drive folder binding:** How does "bound to folder" work technically? Drive API scope, folder ID in config?
